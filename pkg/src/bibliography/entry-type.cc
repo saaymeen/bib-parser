@@ -7,20 +7,15 @@ namespace TUCSE
 {
 	std::vector<FieldType> EntryType::getRequiredFieldTypes() const noexcept
 	{
+		// TODO: dummy
 		return {
 			FieldType::Address,
 		};
-		switch (value)
-		{
-		case EntryType::Article:
-			return {
-				FieldType::Address,
-			};
-		}
 	}
 
 	std::vector<FieldType> EntryType::getOptionalFieldTypes() const noexcept
 	{
+		// TODO: dummy
 		return {
 			FieldType::Address,
 		};
@@ -28,6 +23,7 @@ namespace TUCSE
 
 	std::vector<FieldType> EntryType::getIgnoredFieldTypes() const noexcept
 	{
+		// TODO: dummy
 		return {
 			FieldType::Address,
 		};
