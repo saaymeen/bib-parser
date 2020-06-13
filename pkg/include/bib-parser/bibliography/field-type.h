@@ -1,55 +1,38 @@
 #ifndef TUCSE_BIB_PARSER_FIELD_TYPE_H
 #define TUCSE_BIB_PARSER_FIELD_TYPE_H
 
-#include <cstdint>
+#include <cstddef>
 
 namespace TUCSE
 {
-	class FieldType
+	enum class FieldType : size_t
 	{
-	public:
-		enum Value : uint8_t
-		{
-			Address = 0x00,
-			Annote,
-			Author,
-			Booktitle,
-			Chapter,
-			CrossReference,
-			Edition,
-			Editor,
-			HowPublished,
-			Institution,
-			Journal,
-			Key,
-			Month,
-			Note,
-			Number,
-			Organization,
-			Pages,
-			Publisher,
-			School,
-			Series,
-			Title,
-			Type,
-			Volume,
-			Year,
+		Address = 0x00,
+		Annote,
+		Author,
+		Booktitle,
+		Chapter,
+		CrossReference,
+		Edition,
+		Editor,
+		HowPublished,
+		Institution,
+		Journal,
+		Key,
+		Month,
+		Note,
+		Number,
+		Organization,
+		Pages,
+		Publisher,
+		School,
+		Series,
+		Title,
+		Type,
+		Volume,
+		Year,
 
-			NumberOf, // Must always be the last value in the enum
-		};
-
-		FieldType() = default;
-		constexpr FieldType(Value type) : value{type} {}
-
-		operator Value() const
-		{
-			return value;
-		}
-
-		explicit operator bool() = delete;
-
-	private:
-		Value const value;
+		NumberOf, // NOTE: Must always be the last value in the enum
 	};
 
 	class FieldTypeHash

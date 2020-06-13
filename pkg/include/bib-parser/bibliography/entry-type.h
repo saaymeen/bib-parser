@@ -1,6 +1,7 @@
 #ifndef TUCSE_BIB_PARSER_ENTRY_TYPE_H
 #define TUCSE_BIB_PARSER_ENTRY_TYPE_H
 
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -8,46 +9,30 @@
 
 namespace TUCSE
 {
-	class EntryType
+	enum class EntryType : size_t
 	{
-	public:
-		enum Value : uint8_t
-		{
-			Article = 0x00,
-			Book,
-			Booklet,
-			Conference,
-			InBook,
-			InCollection,
-			InProceedings,
-			Manual,
-			MastersThesis,
-			Miscellaneous,
-			PHDThesis,
-			Proceedings,
-			TechReport,
-			Unpublished,
+		Article = 0x00,
+		Book,
+		Booklet,
+		Conference,
+		InBook,
+		InCollection,
+		InProceedings,
+		Manual,
+		MastersThesis,
+		Miscellaneous,
+		PHDThesis,
+		Proceedings,
+		TechReport,
+		Unpublished,
 
-			NumberOf, // Must always be the last value in the enum
-		};
-
-		EntryType() = default;
-		constexpr EntryType(Value type) : value{type} {}
-
-		operator Value() const
-		{
-			return value;
-		}
-
-		explicit operator bool() = delete;
-
-		std::vector<FieldType> getOptionalFieldTypes() const noexcept;
-		std::vector<FieldType> getRequiredFieldTypes() const noexcept;
-		std::vector<FieldType> getIgnoredFieldTypes() const noexcept;
-
-	private:
-		Value const value;
+		NumberOf, // NOTE: Must always be the last value in the enum
 	};
+
+	std::vector<FieldType> getOptionalFieldTypes(EntryType const entryType) noexcept;
+	std::vector<FieldType> getRequiredFieldTypes(EntryType const entryType) noexcept;
+	std::vector<FieldType> getIgnoredFieldTypes(EntryType const entryType) noexcept;
+
 } // namespace TUCSE
 
 #endif // TUCSE_BIB_PARSER_ENTRY_TYPE_H
