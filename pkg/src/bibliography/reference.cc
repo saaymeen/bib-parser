@@ -1,12 +1,40 @@
+#include <string>
+#include <unordered_map>
+
 #include "bib-parser/bibliography/reference.h"
 
-namespace TUCSE
-{
-	Reference::Reference(std::string const &citationKey, EntryType const entryType)
-		: citationKey{citationKey}, entryType{entryType}, fields{} {};
+using std::string;
+using std::unordered_map;
 
-	EntryType Reference::getEntryType() const noexcept
-	{
-		return entryType;
-	}
-} // namespace TUCSE
+using TUCSE::EntryType;
+using TUCSE::FieldType;
+using TUCSE::Reference;
+
+Reference::Reference(string const &citationKey, EntryType const entryType)
+	: citationKey{citationKey}, entryType{entryType}, fields{} {};
+
+EntryType Reference::getEntryType() const noexcept
+{
+	return entryType;
+}
+
+void Reference::addField(FieldType const fieldType, string const &value) noexcept
+{
+	fields.insert({fieldType, value});
+}
+
+string Reference::getCitationKey() const noexcept
+{
+	return citationKey;
+}
+
+unordered_map<FieldType, string> Reference::getFields() const noexcept
+{
+	return fields;
+}
+
+bool Reference::isValid() const noexcept
+{
+	// TODO: Implement
+	return false;
+}

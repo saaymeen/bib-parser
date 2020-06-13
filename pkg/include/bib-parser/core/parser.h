@@ -5,7 +5,6 @@
 #include <vector>
 #include <algorithm>
 
-// TODO: Check why this can't be '#include "bibliography/reference.h"'
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/bibliography/sorter.h"
 

@@ -5,7 +5,7 @@
 
 namespace TUCSE
 {
-	std::vector<FieldType> EntryType::getRequiredFieldTypes() const noexcept
+	std::vector<FieldType> getRequiredFieldTypes(EntryType const entryType) noexcept
 	{
 		// TODO: dummy
 		return {
@@ -13,7 +13,7 @@ namespace TUCSE
 		};
 	}
 
-	std::vector<FieldType> EntryType::getOptionalFieldTypes() const noexcept
+	std::vector<FieldType> getOptionalFieldTypes(EntryType const entryType) noexcept
 	{
 		// TODO: dummy
 		return {
@@ -21,7 +21,7 @@ namespace TUCSE
 		};
 	}
 
-	std::vector<FieldType> EntryType::getIgnoredFieldTypes() const noexcept
+	std::vector<FieldType> getIgnoredFieldTypes(EntryType const entryType) noexcept
 	{
 		// TODO: dummy
 		return {

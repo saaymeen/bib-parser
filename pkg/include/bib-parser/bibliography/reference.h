@@ -15,12 +15,16 @@ namespace TUCSE
 		Reference(std::string const &citationKey, EntryType const entryType);
 
 		void addField(FieldType const fieldType, std::string const &value) noexcept;
+
+		bool isValid() const noexcept;
+		std::string getCitationKey() const noexcept;
 		EntryType getEntryType() const noexcept;
+		std::unordered_map<FieldType, std::string> getFields() const noexcept;
 
 	private:
 		std::string const citationKey;
 		EntryType const entryType;
-		std::unordered_map<FieldType, std::string, FieldTypeHash> fields;
+		std::unordered_map<FieldType, std::string> fields;
 	};
 } // namespace TUCSE
 

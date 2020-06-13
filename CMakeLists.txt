@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(BIB_Parser)
 
+enable_testing()
+
 add_subdirectory(lib/catch2)
 add_subdirectory(lib/cli11)
 
