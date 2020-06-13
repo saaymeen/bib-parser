@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 // TODO: Check why this can't be '#include "bibliography/reference.h"'
 #include "bib-parser/bibliography/reference.h"
@@ -42,7 +43,79 @@ namespace TUCSE
 
 		bool verbose{false};
 
-		std::vector<Reference> references{};
+		enum ParserException : uint8_t
+		{
+			//different thingy expected
+			TokenMismatch = 0x00,
+			EqualSignExpected,
+			UnterminatedValue,	
+			UnexpectedValue,
+
+			//completely wrong 
+			UnknownEntryType,
+			UnknwonFieldType,			
+
+			//missing brace
+			RunawayKey,
+			RunawayComment,
+
+			NumberOf, // Must always be the last value in the enum
+		};
+
+		std::vector<Reference> references{};	
+
+		//used for storing bibtex "variables" -> placeholders  => @string{key = "value"}
+		std::unordered_map<std::string, std::string> placeholders = 
+		{
+			{"jan", "January"},
+			{"feb", "February"},
+			{"mar", "March"},
+			{"apr", "April"},
+			{"may", "May"},
+			{"jun", "June"},
+			{"jul", "July"},
+			{"aug", "August"},
+			{"sep", "September"},
+			{"oct", "October"},
+			{"nov", "November"},
+			{"dec", "December"},
+		};
+
+		//text of input file 
+		std::string input; 
+		//position "cursor" in input file 
+		size_t pos; 
+
+		std::string readFileString();	
+
+		//Parsing Helper Functions
+
+		void preamble();
+		void comment();
+		void placeholder();
+		void entry(std::string);
+		bool tryMatch(std::string); 
+		void match(std::string);
+		void skipWhitespace();
+		static bool isWhitespace(char);
+		char curr(); 
+		std::string valueBraces();
+		std::string valueQuotes();
+		std::string key();
+		std::string value();
+		std::string singleValue();
+		std::string directive();
+		std::pair<std::string, std::string> keyEqualsValue();		
+		void keyValueList(std::string, EntryType);
+		static EntryType asEntryType(std::string); 
+		static FieldType asFieldType(std::string);
+		
+		//String Helper Funtions 
+		
+		bool citationKeyAlreadyExists(std::string);
+		bool stringIsNumber(std::string);
+		bool keyCharMatch(char);
+		static std::string stringToLower(std::string);		 
 	};
 } // namespace TUCSE
 
