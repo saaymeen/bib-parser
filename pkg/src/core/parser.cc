@@ -124,7 +124,7 @@ namespace TUCSE
 	{
 		auto kvPair = keyEqualsValue();
 		if(placeholders.find(stringToLower(kvPair.first)) == placeholders.end())
-			placeholders.insert(stringToLower(kvPair.first), kvPair.second);
+			placeholders.insert(std::make_pair(stringToLower(kvPair.first), kvPair.second));
 	}
 
 	///handles "normal" entries
@@ -353,7 +353,8 @@ namespace TUCSE
 			if(temp == FieldType::NumberOf)
 				throw ParserException::UnknwonFieldType;
 
-			if(!ref.fieldAlreadyExists(temp))
+			std::unordered_map<FieldType, std::string> fields = ref.getFields();
+			if(fields.find(temp) == fields.end())			
 				ref.addField(temp, kvPair.second);
 		}
 
