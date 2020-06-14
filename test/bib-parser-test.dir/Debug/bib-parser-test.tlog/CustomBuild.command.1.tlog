@@ -1,0 +1,10 @@
+^C:\USERS\LISA-LORRAINE HAU\DESKTOP\TU CHEMNITZ_NEU\6. SEMESTER SS 20\SOFTWARE PRAKTIKUM\BIB PARSER\BIB-PARSER\TEST\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/Lisa-Lorraine Hau/Desktop/TU Chemnitz_neu/6. Semester SS 20/Software Praktikum/Bib Parser/bib-parser" "-BC:/Users/Lisa-Lorraine Hau/Desktop/TU Chemnitz_neu/6. Semester SS 20/Software Praktikum/Bib Parser/bib-parser" --check-stamp-file "C:/Users/Lisa-Lorraine Hau/Desktop/TU Chemnitz_neu/6. Semester SS 20/Software Praktikum/Bib Parser/bib-parser/test/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,14 @@
+﻿  Building Custom Rule C:/Users/Lisa-Lorraine Hau/Desktop/TU Chemnitz_neu/6. Semester SS 20/Software Praktikum/Bib Parser/bib-parser/pkg/CMakeLists.txt
+  parser.cc
+C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\pkg\src\core/log.h(28,14): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  sorter.cc
+C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\pkg\src\bibliography\sorter.cc(25,22): warning C4267: "Initialisierung": Konvertierung von "size_t" nach "int", Datenverlust möglich
+C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\pkg\src\bibliography\sorter.cc(26,23): warning C4267: "Initialisierung": Konvertierung von "size_t" nach "int", Datenverlust möglich
+C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\pkg\src\bibliography\sorter.cc(60,28): warning C4267: "Initialisierung": Konvertierung von "size_t" nach "int", Datenverlust möglich
+C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\pkg\src\bibliography\sorter.cc(95,22): warning C4267: "Initialisierung": Konvertierung von "size_t" nach "int", Datenverlust möglich
+C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\pkg\src\bibliography\sorter.cc(96,23): warning C4267: "Initialisierung": Konvertierung von "size_t" nach "int", Datenverlust möglich
+C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\pkg\src\bibliography\sorter.cc(130,28): warning C4267: "Initialisierung": Konvertierung von "size_t" nach "int", Datenverlust möglich
+  entry-type.cc
+  reference.cc
+  Code wird generiert...
+  bib-parser-package.vcxproj -> C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\pkg\Debug\bib-parser-package.lib

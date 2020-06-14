@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\cmd\src\main.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\cmd\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{8D0EF76D-DCAE-3C85-BBDC-D319D9D632CF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

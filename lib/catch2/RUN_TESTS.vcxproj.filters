@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Lisa-Lorraine Hau\Desktop\TU Chemnitz_neu\6. Semester SS 20\Software Praktikum\Bib Parser\bib-parser\CMakeFiles\f9f5fe8cbe8e541295a7a3b221dfd1f4\RUN_TESTS_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{A225655C-423B-3139-973E-92810EB6AA9B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
