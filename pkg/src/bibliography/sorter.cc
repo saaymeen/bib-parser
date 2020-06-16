@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include <string> //f�r std::string::compare
+#include <string> //f�r std::string::tolower
 
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/bibliography/sorter.h"
@@ -102,6 +102,12 @@ void Sorter::test_Integer()
 	}
 }
 
+void Sorter::changeToLower(std::string &str) {
+	for(auto& c : str){
+		c = tolower(c);
+	}
+}
+
 void Sorter::mergeSort_String(std::vector<std::string> &left, std::vector<std::string> &right, std::vector<std::string> &liste)
 {
 	int nL = left.size();
@@ -110,10 +116,19 @@ void Sorter::mergeSort_String(std::vector<std::string> &left, std::vector<std::s
 	int i = 0;
 	int j = 0;
 	int k = 0;
+	std::string tmp_left;
+	std::string tmp_right;
 
 	while (j < nL && k < nR)
 	{
-		if (left[j] < right[k])
+		//kopiere den String und wandle alles in Kleinbuchstaben um
+		tmp_left = left[j];
+		tmp_right = right[k];
+
+		changeToLower(tmp_left);
+		changeToLower(tmp_right);
+
+		if (tmp_left < tmp_right)
 		{
 			liste[i] = left[j];
 			j++;
@@ -125,6 +140,7 @@ void Sorter::mergeSort_String(std::vector<std::string> &left, std::vector<std::s
 		}
 		i++;
 	}
+
 	while (j < nL)
 	{
 		liste[i] = left[j];
@@ -168,9 +184,9 @@ void Sorter::test_String()
 	std::vector<std::string> liste;
 	liste.push_back("Hello World");
 	liste.push_back("Hello Student");
-	liste.push_back("ANanas");
+	liste.push_back("Ananas");
 	liste.push_back("ga");
-	liste.push_back("bb");
+	liste.push_back("ab");
 	liste.push_back("aa");
 	liste.push_back("db");
 	liste.push_back("ca");
@@ -179,7 +195,7 @@ void Sorter::test_String()
 	liste.push_back("ab");
 	liste.push_back("az");
 	liste.push_back("a");
-	liste.push_back("Z");
+	liste.push_back("z");
 
 	//std::sort(liste.begin(), liste.end(),compareFunction);
 	sort_String(liste);

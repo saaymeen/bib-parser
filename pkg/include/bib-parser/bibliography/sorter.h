@@ -35,6 +35,7 @@ namespace TUCSE
 		static void test_String();
 		static void sort_String(std::vector<std::string> &liste);
 		static void mergeSort_String(std::vector<std::string> &left, std::vector<std::string> &right, std::vector<std::string> &liste);
+		static void changeToLower(std::string &str);
 	};
 } // namespace TUCSE
 

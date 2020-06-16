@@ -17,6 +17,8 @@ int runConvertApp(std::string const &inputFilePath, std::string const &outputFil
 
 int main(int argc, char **argv)
 {
+	TUCSE::Sorter::test_String();
+
 	std::string inputFilePath{""};
 	std::string configFilePath{""};
 	std::string outputFilePath{""};
