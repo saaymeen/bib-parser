@@ -5,7 +5,8 @@
 #include <vector>
 
 #include "bib-parser/bibliography/reference.h"
-#include "bib-parser/bibliography/sorter.h"
+#include "bib-parser/core/sorter.h"
+#include "bib-parser/core/translation-table.h"
 
 namespace TUCSE
 {
@@ -23,6 +24,14 @@ namespace TUCSE
 			XML
 		};
 
+		enum class ConfigSection
+		{
+			HTML,
+			PDF,
+			XML,
+			Common
+		};
+
 		static std::map<std::string, OutputType> const outputTypeMap;
 
 	public:
@@ -35,6 +44,11 @@ namespace TUCSE
 		bool getVerbose() const noexcept;
 
 	private:
+		void composeTranslationTable();
+		ConfigSection getConfigSection(std::string const &value);
+		void processConfigLine(std::string const &key, std::string const &value, ConfigSection const section);
+
+	private:
 		std::ifstream inputFile{};
 		std::ifstream configFile{};
 		std::ofstream outputFile{};
@@ -42,6 +56,8 @@ namespace TUCSE
 		bool verbose{false};
 
 		std::vector<Reference> references{};
+
+		TranslationTable translationTable{};
 	};
 } // namespace TUCSE
 

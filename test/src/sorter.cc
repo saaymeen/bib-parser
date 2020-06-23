@@ -3,7 +3,7 @@
 #include <bib-parser/bibliography/entry-type.h>
 #include <bib-parser/bibliography/field-type.h>
 #include <bib-parser/bibliography/reference.h>
-#include <bib-parser/bibliography/sorter.h>
+#include <bib-parser/core/sorter.h>
 
 using TUCSE::EntryType;
 using TUCSE::FieldType;

@@ -5,7 +5,7 @@
 #include <string> //f�r std::string::tolower
 
 #include "bib-parser/bibliography/reference.h"
-#include "bib-parser/bibliography/sorter.h"
+#include "bib-parser/core/sorter.h"
 
 using TUCSE::Reference;
 using TUCSE::Sorter;
@@ -102,8 +102,10 @@ void Sorter::test_Integer()
 	}
 }
 
-void Sorter::changeToLower(std::string &str) {
-	for(auto& c : str){
+void Sorter::changeToLower(std::string &str)
+{
+	for (auto &c : str)
+	{
 		c = tolower(c);
 	}
 }

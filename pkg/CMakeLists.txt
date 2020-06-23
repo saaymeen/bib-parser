@@ -4,9 +4,14 @@ OPTION(BIB_PARSER_LOG "Enable all logs for the bib-parser library" OFF)
 
 add_library(bib-parser-package STATIC
 	${CMAKE_CURRENT_LIST_DIR}/src/core/parser.cc
-	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/sorter.cc
+	${CMAKE_CURRENT_LIST_DIR}/src/core/sorter.cc
+	${CMAKE_CURRENT_LIST_DIR}/src/core/util.cc
+	${CMAKE_CURRENT_LIST_DIR}/src/core/translation-table.cc
+	${CMAKE_CURRENT_LIST_DIR}/src/core/translation-table-rule.cc
+
 	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/entry-type.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/reference.cc
+	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/field-type.cc
 )
 
 if(BIB_PARSER_LOG)
