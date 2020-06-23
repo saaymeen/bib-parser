@@ -1,6 +1,7 @@
 #include "bib-parser/core/parser.h"
 
-#include "core/log.h"
+#include "bib-parser/bibliography/sorter.h"
+#include "log.h"
 
 namespace TUCSE
 {
@@ -40,6 +41,7 @@ namespace TUCSE
 
 	void Parser::sort(Sorter::Criteria const sortCriteria) noexcept
 	{
+		Sorter sorter;
 		VERBOSE_LOG(verbose, "Starting to sort references");
 	}
 
