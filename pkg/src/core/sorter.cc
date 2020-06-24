@@ -2,15 +2,83 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include <string> //f�r std::string::tolower
+#include <string>
+#include <stdexcept>
 
 #include "bib-parser/bibliography/reference.h"
-#include "bib-parser/bibliography/sorter.h"
+#include "bib-parser/core/sorter.h"
+#include "bib-parser/core/util.h"
+#include "bib-parser/bibliography/field-type.h"
 
 using TUCSE::Reference;
 using TUCSE::Sorter;
 using Criteria = TUCSE::Sorter::Criteria;
 using namespace std;
+using TUCSE::stringToLowercase;
+using FieldType = TUCSE::FieldType;
+
+void Sorter::setCriteria(Criteria const criteria) noexcept
+{
+	this->criteria = criteria;
+}
+
+void Sorter::apply(std::vector<Reference> &references) const
+{
+	if (criteria == Criteria::NoSort)
+	{
+		return;
+	}
+
+	for (auto const &reference : references)
+	{
+		if (!reference.isValid())
+		{
+			throw new std::exception{};
+		}
+	}
+
+	sort(references.begin(), references.end(), [this](Reference const &left, Reference const &right) {
+		switch (criteria)
+		{
+		case Criteria::AuthorAsc:
+			return compareAuthor(left, right);
+		case Criteria::AuthorDesc:
+			return !compareAuthor(left, right);
+		}
+		return false;
+	});
+
+	// FIXME: Implement
+	// mithilfe von if-Bedingungen abnfangen, ob String oder Integer Vektor sortiert werden muss (also nach Author, Entry Type oder nach Year)
+	// entsprechende Funktionen aufrufen und Vektor sortieren lassen
+}
+
+// Return true if left's author it greater than right's author
+bool Sorter::compareAuthor(Reference const &left, Reference const &right) noexcept
+{
+	string leftValue;
+	string rightValue;
+
+	try
+	{
+		leftValue = left.getFieldValue(FieldType::Author);
+	}
+	catch (std::out_of_range const &exception)
+	{
+		return false;
+	}
+
+	try
+	{
+		rightValue = right.getFieldValue(FieldType::Author);
+	}
+	catch (std::out_of_range const &exception)
+	{
+		return true;
+	}
+
+	return leftValue < rightValue;
+}
 
 std::map<std::string, Sorter::Criteria> const TUCSE::Sorter::argumentMap{
 	{"author-asc", Criteria::AuthorAsc},
@@ -102,8 +170,10 @@ void Sorter::test_Integer()
 	}
 }
 
-void Sorter::changeToLower(std::string &str) {
-	for(auto& c : str){
+void Sorter::changeToLower(std::string &str)
+{
+	for (auto &c : str)
+	{
 		c = tolower(c);
 	}
 }
@@ -206,11 +276,4 @@ void Sorter::test_String()
 		std::cout << *it << '\n'
 				  << std::endl;
 	}
-}
-
-void Sorter::sort(std::vector<Reference> &references, Criteria const criteria) noexcept
-{
-	// FIXME: Implement
-	// mithilfe von if-Bedingungen abnfangen, ob String oder Integer Vektor sortiert werden muss (also nach Author, Entry Type oder nach Year)
-	// entsprechende Funktionen aufrufen und Vektor sortieren lassen
 }

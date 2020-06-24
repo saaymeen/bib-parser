@@ -21,9 +21,11 @@ namespace TUCSE
 		EntryType getEntryType() const noexcept;
 		std::unordered_map<FieldType, std::string> getFields() const noexcept;
 
+		std::string getFieldValue(FieldType const fieldType) const;
+
 	private:
-		std::string const citationKey;
-		EntryType const entryType;
+		std::string citationKey;
+		EntryType entryType;
 		std::unordered_map<FieldType, std::string> fields;
 	};
 } // namespace TUCSE

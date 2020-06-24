@@ -6,7 +6,7 @@
 #include <cli11/cli11.h>
 
 #include <bib-parser/core/parser.h>
-#include <bib-parser/bibliography/sorter.h>
+#include <bib-parser/core/sorter.h>
 
 unsigned char const ErrorNone = 0;
 unsigned char const ErrorNoSubcommand = 1;
@@ -17,8 +17,6 @@ int runConvertApp(std::string const &inputFilePath, std::string const &outputFil
 
 int main(int argc, char **argv)
 {
-	TUCSE::Sorter::test_String();
-
 	std::string inputFilePath{""};
 	std::string configFilePath{""};
 	std::string outputFilePath{""};

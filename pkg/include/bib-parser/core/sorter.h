@@ -28,7 +28,13 @@ namespace TUCSE
 		static std::map<std::string, Criteria> const argumentMap;
 
 	public:
-		static void sort(std::vector<Reference> &references, Criteria const criteria = Criteria::NoSort) noexcept;
+		void setCriteria(Criteria const criteria) noexcept;
+		void apply(std::vector<Reference> &references) const;
+
+	private:
+		static bool compareAuthor(Reference const &left, Reference const &right) noexcept;
+
+	public:
 		static void test_Integer();
 		static void sort_Integer(std::vector<int> &liste);
 		static void mergeSort_Integer(std::vector<int> &left, std::vector<int> &right, std::vector<int> &liste);
@@ -36,6 +42,9 @@ namespace TUCSE
 		static void sort_String(std::vector<std::string> &liste);
 		static void mergeSort_String(std::vector<std::string> &left, std::vector<std::string> &right, std::vector<std::string> &liste);
 		static void changeToLower(std::string &str);
+
+	private:
+		Criteria criteria{Criteria::NoSort};
 	};
 } // namespace TUCSE
 
