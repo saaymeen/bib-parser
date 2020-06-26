@@ -8,6 +8,8 @@ add_library(bib-parser-package STATIC
 	${CMAKE_CURRENT_LIST_DIR}/src/core/util.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/core/translation-table.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/core/translation-table-rule.cc
+	${CMAKE_CURRENT_LIST_DIR}/src/core/types.cc
+	${CMAKE_CURRENT_LIST_DIR}/src/core/error.cc
 
 	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/entry-type.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/reference.cc

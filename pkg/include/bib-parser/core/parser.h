@@ -4,9 +4,12 @@
 #include <fstream>
 #include <vector>
 
+#include "bib-parser/core/types.h"
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/core/sorter.h"
 #include "bib-parser/core/translation-table.h"
+
+#define TUCSE_BIB_PARSER_OUTPUT_TYPES HTML, PDF, XML
 
 namespace TUCSE
 {
@@ -16,21 +19,6 @@ namespace TUCSE
 		Parser(std::string const &inputFilePath, std::string const configFilePath = "", std::string const outputFilePath = "");
 
 		~Parser();
-
-		enum class OutputType
-		{
-			HTML,
-			PDF,
-			XML
-		};
-
-		enum class ConfigSection
-		{
-			HTML,
-			PDF,
-			XML,
-			Common
-		};
 
 		static std::map<std::string, OutputType> const outputTypeMap;
 

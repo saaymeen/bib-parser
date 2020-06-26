@@ -5,9 +5,6 @@ namespace TUCSE
 {
 	class TranslationTableRule
 	{
-	private:
-		TranslationTableRule();
-		TranslationTableRule(TranslationTableRule const &);
 	};
 } // namespace TUCSE
 

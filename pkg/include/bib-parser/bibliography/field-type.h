@@ -37,7 +37,7 @@ namespace TUCSE
 		NumberOf, // NOTE: Must always be the last value in the enum
 	};
 
-	static std::map<std::string, FieldType> const fieldTypeStrings;
+	extern std::map<std::string, FieldType> const fieldTypeStrings;
 
 	class FieldTypeHash
 	{

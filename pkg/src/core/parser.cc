@@ -1,6 +1,8 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include <memory>
+#include <exception>
 
 #include "bib-parser/core/util.h"
 #include "bib-parser/core/sorter.h"
@@ -10,19 +12,31 @@
 #include "bib-parser/core/html-rule.h"
 #include "bib-parser/core/xml-rule.h"
 #include "bib-parser/core/pdf-rule.h"
+#include "bib-parser/core/types.h"
+#include "bib-parser/core/error.h"
 
+using std::cout;
+using std::endl;
 using std::map;
 using std::string;
 using std::vector;
 using TUCSE::Parser;
-using OutputType = TUCSE::Parser::OutputType;
+using OutputType = TUCSE::OutputType;
 using Criteria = TUCSE::Sorter::Criteria;
 using TUCSE::splitString;
 using TUCSE::stringEndsWith;
 using TUCSE::stringStartsWith;
-using ConfigSection = TUCSE::Parser::ConfigSection;
+using ConfigSection = TUCSE::ConfigSection;
+using ScalarType = TUCSE::ScalarType;
+using std::make_unique;
+using std::move;
+using std::unique_ptr;
+using PDFType = TUCSE::PDFType;
+using HTMLTag = TUCSE::HTMLTag;
+using std::out_of_range;
+using TUCSE::UserError;
 
-map<string, OutputType> const outputTypeMap{
+map<string, OutputType> const Parser::outputTypeMap{
 	{"pdf", OutputType::PDF},
 	{"xml", OutputType::XML},
 	{"html", OutputType::HTML}};
@@ -49,13 +63,12 @@ void Parser::generateOutput(OutputType const outputType)
 void Parser::parseConfig()
 {
 	VERBOSE_LOG(verbose, "Starting to parse configuration file");
+	composeTranslationTable();
 }
 
 void Parser::parseInput()
 {
 	VERBOSE_LOG(verbose, "Starting to parse input");
-
-	composeTranslationTable();
 }
 
 void Parser::sort(Criteria const sortCriteria) noexcept
@@ -75,10 +88,13 @@ bool Parser::getVerbose() const noexcept
 
 void Parser::composeTranslationTable()
 {
-	ConfigSection section{ConfigSection::Common};
+	ConfigSection section{ConfigSection::Scalars};
 	string line;
+	size_t lineNumber = 0;
 	while (getline(configFile, line))
 	{
+		lineNumber += 1;
+
 		// ignore comments
 		if (stringStartsWith(line, '#'))
 		{
@@ -94,7 +110,7 @@ void Parser::composeTranslationTable()
 		// handle sections
 		if (stringStartsWith(line, '[') && stringEndsWith(line, "]"))
 		{
-			section = getConfigSection(line.substr(1, line.size() - 1));
+			section = getConfigSection(line.substr(1, line.size() - 2));
 			continue;
 		}
 
@@ -102,7 +118,8 @@ void Parser::composeTranslationTable()
 		vector<string> parts = splitString(line, '=');
 		if (parts.size() != 2)
 		{
-			throw new std::exception{};
+			UserError userError{"Error parsing config file: Invalid key value pair in line " + lineNumber};
+			throw userError;
 		}
 
 		processConfigLine(parts[0], parts[1], section);
@@ -111,9 +128,9 @@ void Parser::composeTranslationTable()
 
 ConfigSection Parser::getConfigSection(string const &value)
 {
-	if (value == "common")
+	if (value == "scalars")
 	{
-		return ConfigSection::Common;
+		return ConfigSection::Scalars;
 	}
 	else if (value == "html")
 	{
@@ -121,34 +138,88 @@ ConfigSection Parser::getConfigSection(string const &value)
 	}
 	else if (value == "xml")
 	{
-		Sorter sorter;
-		VERBOSE_LOG(verbose, "Starting to sort references");
+		return ConfigSection::XML;
 	}
 	else if (value == "pdf")
 	{
 		return ConfigSection::PDF;
 	}
 
-	throw new std::exception{};
+	UserError userError{"Error parsing config file: Invalid section found: \"" + value + "\""};
+	throw userError;
 }
 
 void Parser::processConfigLine(string const &key, string const &value, ConfigSection const section)
 {
-	// TODO: throws out of bound exception, how to handle error
-	FieldType const fieldType = fieldTypeStrings.at(key);
-
-	// TUCSE::HTMLRule rule;
+	FieldType fieldType{FieldType::Address};
+	try
+	{
+		fieldType = fieldTypeStrings.at(key);
+	}
+	catch (out_of_range const &exception)
+	{
+		UserError userError{"Error parsing config file: Invalid field type \"" + key + "\""};
+		throw userError;
+	}
 
 	switch (section)
 	{
-	case ConfigSection::Common:
+	case ConfigSection::Scalars:
+	{
+		try
+		{
+			ScalarType scalarType = TranslationTable::scalarTypeStrings.at(value);
+			translationTable.addScalarFieldType(fieldType, scalarType);
+		}
+		catch (out_of_range const &exception)
+		{
+			UserError userError{"Error parsing config file: Invalid scalar type \"" + value + "\""};
+			throw userError;
+		}
 
 		break;
+	}
+
 	case ConfigSection::XML:
+	{
+		unique_ptr<XMLRule> xmlRule = make_unique<XMLRule>(value);
+		translationTable.addRule(OutputType::XML, fieldType, move(xmlRule));
 		break;
+	}
 	case ConfigSection::PDF:
+	{
+		try
+		{
+			PDFType pdfType = TranslationTable::pdfTypeStrings.at(value);
+			unique_ptr<PDFRule> pdfRule = make_unique<PDFRule>(pdfType);
+			translationTable.addRule(OutputType::PDF, fieldType, move(pdfRule));
+		}
+		catch (out_of_range const &exception)
+		{
+			UserError userError{"Error parsing config file: Invalid PDF type \"" + value + "\""};
+			throw userError;
+		}
+
 		break;
+	}
+
 	case ConfigSection::HTML:
+	{
+		try
+		{
+			HTMLTag htmlTag = TranslationTable::htmlTagStrings.at(value);
+			unique_ptr<HTMLRule> htmlRule = make_unique<HTMLRule>(htmlTag);
+			translationTable.addRule(OutputType::HTML, fieldType, move(htmlRule));
+		}
+		catch (out_of_range const &exception)
+		{
+			UserError userError{"Error parsing config file: Invalid HTML tag \"" + value + "\""};
+			throw userError;
+		}
 		break;
+	}
+
+	default:
+		throw new std::exception{};
 	}
 }
