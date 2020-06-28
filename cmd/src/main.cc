@@ -45,6 +45,9 @@ int main(int argc, char **argv)
 	convertApp->add_option("-t,--type", outputType, "XML, PDF or HTML")->required()->transform(CLI::CheckedTransformer(TUCSE::Parser::outputTypeMap, CLI::ignore_case));
 	convertApp->add_option("-s,--sort", sortCriteria, "Can be used to sort the BibTeX entries.")->transform(CLI::CheckedTransformer(TUCSE::Sorter::argumentMap, CLI::ignore_case));
 
+	// bib-parser convert -i a.bib -o a.html -c a.ini -t HTML -s author-asc
+	// 
+
 	checkApp->add_option<std::string, std::string>("-i,--input", inputFilePath, "Path to the input file containing BibTeX definitions.")->required();
 
 	CLI11_PARSE(app, argc, argv); // Throws if invalid arguments supplied

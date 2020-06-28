@@ -22,7 +22,9 @@ namespace TUCSE
 			CitationKeyAsc,
 			CitationKeyDesc,
 			EntryTypeAsc,
-			EntryTypeDesc
+			EntryTypeDesc,
+			YearAsc,
+			YearDesc
 		};
 
 		static std::map<std::string, Criteria> const argumentMap;
@@ -32,16 +34,19 @@ namespace TUCSE
 		void apply(std::vector<Reference> &references) const;
 
 	private:
-		static bool compareAuthor(Reference const &left, Reference const &right) noexcept;
+		static bool compareAuthorAsc(Reference const &left, Reference const &right) noexcept;
+		static bool compareAuthorDesc(Reference const &left, Reference const &right) noexcept;
 
-	public:
-		static void test_Integer();
-		static void sort_Integer(std::vector<int> &liste);
-		static void mergeSort_Integer(std::vector<int> &left, std::vector<int> &right, std::vector<int> &liste);
-		static void test_String();
-		static void sort_String(std::vector<std::string> &liste);
-		static void mergeSort_String(std::vector<std::string> &left, std::vector<std::string> &right, std::vector<std::string> &liste);
-		static void changeToLower(std::string &str);
+		//static bool compareEntryTypeAsc(Reference const &left, Reference const &right) noexcept;
+		//static bool compareEntryTypeDesc(Reference const &left, Reference const &right) noexcept;
+
+		static bool compareYearAsc(Reference const &left, Reference const &right) noexcept;
+		static bool compareYearDesc(Reference const &left, Reference const &right) noexcept;
+
+		static bool compareCitationKeyAsc(Reference const &left, Reference const &right) noexcept;
+		static bool compareCitationKeyDesc(Reference const &left, Reference const &right) noexcept;
+
+
 
 	private:
 		Criteria criteria{Criteria::NoSort};

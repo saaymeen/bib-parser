@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
@@ -41,20 +41,78 @@ void Sorter::apply(std::vector<Reference> &references) const
 		switch (criteria)
 		{
 		case Criteria::AuthorAsc:
-			return compareAuthor(left, right);
+			// implementieren von compareAuthorAsc
+			return compareAuthorAsc(left, right);
 		case Criteria::AuthorDesc:
-			return !compareAuthor(left, right);
+			// implementieren von compareAuthorDesc
+			return compareAuthorDesc(left, right);
+		case Criteria::YearAsc:
+			return compareYearAsc(left, right);
+		case Criteria::YearDesc:
+			return compareYearDesc(left, right);
+	/*	case Criteria::EntryTypeAsc: 
+			return compareEntryTypeAsc(left, right);
+		case Criteria::EntryTypeDesc:
+			return compareEntryTypeDesc(left, right);*/
+		case Criteria::CitationKeyAsc:
+			return compareCitationKeyAsc(left, right);
+		case Criteria::CitationKeyDesc:
+			return compareCitationKeyDesc(left, right);
 		}
 		return false;
 	});
-
-	// FIXME: Implement
-	// mithilfe von if-Bedingungen abnfangen, ob String oder Integer Vektor sortiert werden muss (also nach Author, Entry Type oder nach Year)
-	// entsprechende Funktionen aufrufen und Vektor sortieren lassen
 }
 
-// Return true if left's author it greater than right's author
-bool Sorter::compareAuthor(Reference const &left, Reference const &right) noexcept
+// Return true if left's author is greater than right's author
+bool Sorter::compareAuthorAsc(Reference const &left, Reference const &right) noexcept
+{
+	string leftValue;
+	string rightValue;
+
+	// string leftVAlue = left.getCitationKey(); // muss nicht in try catch gewrappt werden, da es immer einen gibt (noexcept)
+
+	try
+	{
+		leftValue = left.getFieldValue(FieldType::Author);
+	}
+	catch (std::out_of_range const &exception)
+	{
+		// a..z sortieren, dann muss das false sein
+		return false;
+	}
+
+	try
+	{
+		rightValue = right.getFieldValue(FieldType::Author);
+	}
+	catch (std::out_of_range const &exception)
+	{
+		// links hat autor, rechts nicht
+		// im falle a...z sortieren, dann muss true sein
+
+		// comparison function object (i.e. an object that satisfies the requirements of Compare)
+		// which returns ​true if the first argument is less than (i.e. is ordered before) the second.
+
+		// 1 2 3
+		// lambda(1, 3) => true
+		// 3 2 1
+		// lambda(3, 1) => false
+		return true;
+	}
+
+	// "codeblock vergleich" kann hier verwendet werden
+	// hier wird der eigentliche vergleich ausgeführt, d.h. rechts und links haben jeweils einen autor
+
+	// leftValue: author von left
+	// rightValue: author von right
+
+	TUCSE::stringToLowercase(leftValue);
+	TUCSE::stringToLowercase(rightValue);
+
+	return leftValue < rightValue;
+}
+
+bool Sorter::compareAuthorDesc(Reference const &left, Reference const &right) noexcept
 {
 	string leftValue;
 	string rightValue;
@@ -65,6 +123,7 @@ bool Sorter::compareAuthor(Reference const &left, Reference const &right) noexce
 	}
 	catch (std::out_of_range const &exception)
 	{
+		// a..z sortieren, dann muss das false sein
 		return false;
 	}
 
@@ -74,11 +133,149 @@ bool Sorter::compareAuthor(Reference const &left, Reference const &right) noexce
 	}
 	catch (std::out_of_range const &exception)
 	{
+		// comparison function object (i.e. an object that satisfies the requirements of Compare)
+		// which returns ​true if the first argument is less than (i.e. is ordered before) the second.
+		return true;
+	}
+
+	// hier wird der eigentliche vergleich ausgeführt, d.h. rechts und links haben jeweils einen autor
+	TUCSE::stringToLowercase(leftValue);
+	TUCSE::stringToLowercase(rightValue);
+
+	return leftValue > rightValue;
+}
+
+bool Sorter::compareYearAsc(Reference const& left, Reference const& right) noexcept
+{
+	string leftValue;
+	string rightValue;
+
+	try
+	{
+		leftValue = left.getFieldValue(FieldType::Year);
+	}
+	catch (std::out_of_range const& exception)
+	{
+		return false;
+	}
+
+	try
+	{
+		rightValue = right.getFieldValue(FieldType::Year);
+	}
+	catch (std::out_of_range const& exception)
+	{
 		return true;
 	}
 
 	return leftValue < rightValue;
 }
+
+bool Sorter::compareYearDesc(Reference const &left, Reference const &right) noexcept
+{
+	string leftValue;
+	string rightValue;
+
+	try
+	{
+		leftValue = left.getFieldValue(FieldType::Year);
+	}
+	catch (std::out_of_range const &exception)
+	{
+		return false;
+	}
+
+	try
+	{
+		rightValue = right.getFieldValue(FieldType::Year);
+	}
+	catch (std::out_of_range const &exception)
+	{
+		return true;
+	}
+
+	return leftValue > rightValue;
+}
+
+//TO-DO: test
+bool Sorter::compareCitationKeyAsc(Reference const& left, Reference const& right) noexcept
+{
+	string leftValue;
+	string rightValue;
+	
+	leftValue = left.getCitationKey();
+	rightValue = right.getCitationKey();
+
+
+	return leftValue < rightValue;
+}
+
+//TO-DO: test
+bool Sorter::compareCitationKeyDesc(Reference const &left, Reference const &right) noexcept
+{
+	string leftValue;
+	string rightValue;
+
+	leftValue = left.getCitationKey();
+	rightValue = right.getCitationKey();
+
+	return leftValue > rightValue;
+}
+
+//TO-DO: convert entryType to string
+/*bool Sorter::compareEntryTypeAsc(Reference const& left, Reference const& right) noexcept
+{
+	string leftValue;
+	string rightValue;
+
+	try
+	{
+		leftValue = left.getEntryType();
+	}
+	catch (std::out_of_range const& exception)
+	{
+		return false;
+	}
+
+	try
+	{
+		rightValue = right.getEntryType();
+	}
+	catch (std::out_of_range const& exception)
+	{
+		return true;
+	}
+
+	return leftValue < rightValue;
+}
+
+bool Sorter::compareEntryTypeDesc(Reference const& left, Reference const& right) noexcept
+{
+	string leftValue;
+	string rightValue;
+
+	try
+	{
+		leftValue = left.getEntryType();
+	}
+	catch (std::out_of_range const& exception)
+	{
+		return false;
+	}
+
+	try
+	{
+		rightValue = right.getEntryType();
+	}
+	catch (std::out_of_range const& exception)
+	{
+		return true;
+	}
+
+	// hier wird der eigentliche vergleich ausgeführt, d.h. rechts und links haben jeweils einen autor
+	return leftValue > rightValue;
+}*/
+
 
 std::map<std::string, Sorter::Criteria> const TUCSE::Sorter::argumentMap{
 	{"author-asc", Criteria::AuthorAsc},
@@ -87,193 +284,3 @@ std::map<std::string, Sorter::Criteria> const TUCSE::Sorter::argumentMap{
 	{"key-desc", Criteria::CitationKeyDesc},
 	{"type-asc", Criteria::EntryTypeAsc},
 	{"type-desc", Criteria::EntryTypeDesc}};
-
-void Sorter::mergeSort_Integer(std::vector<int> &left, std::vector<int> &right, std::vector<int> &liste)
-{
-	int nL = left.size();
-	int nR = right.size();
-
-	int i = 0;
-	int j = 0;
-	int k = 0;
-
-	while (j < nL && k < nR)
-	{
-		if (left[j] < right[k])
-		{
-			liste[i] = left[j];
-			j++;
-		}
-		else
-		{
-			liste[i] = right[k];
-			k++;
-		}
-		i++;
-	}
-	while (j < nL)
-	{
-		liste[i] = left[j];
-		j++;
-		i++;
-	}
-
-	while (k < nR)
-	{
-		liste[i] = right[k];
-		k++;
-		i++;
-	}
-}
-
-void Sorter::sort_Integer(std::vector<int> &liste)
-{
-	//mergeSort zum Sortieren eines Vectors mit Integer-Elementen
-	if (liste.size() <= 1)
-		return;
-
-	int mid = liste.size() / 2;
-	std::vector<int> left;
-	std::vector<int> right;
-	for (size_t j = 0; j < mid; j++)
-	{
-		left.push_back(liste[j]);
-	}
-	for (size_t j = 0; j < (liste.size()) - mid; j++)
-	{
-		right.push_back(liste[mid + j]);
-	}
-
-	sort_Integer(left);
-	sort_Integer(right);
-	mergeSort_Integer(left, right, liste);
-}
-
-void Sorter::test_Integer()
-{
-	//std::vector<int> liste = createListe();
-	std::vector<int> liste;
-	liste.push_back(int(4));
-	liste.push_back(int(2));
-	liste.push_back(int(3));
-	liste.push_back(int(1));
-	liste.push_back(int(6));
-	liste.push_back(int(9));
-	liste.push_back(int(7));
-	liste.push_back(int(8));
-
-	sort_Integer(liste);
-
-	for (auto it = liste.begin(); it != liste.end(); it++)
-	{
-		std::cout << *it << std::endl;
-	}
-}
-
-void Sorter::changeToLower(std::string &str)
-{
-	for (auto &c : str)
-	{
-		c = tolower(c);
-	}
-}
-
-void Sorter::mergeSort_String(std::vector<std::string> &left, std::vector<std::string> &right, std::vector<std::string> &liste)
-{
-	int nL = left.size();
-	int nR = right.size();
-
-	int i = 0;
-	int j = 0;
-	int k = 0;
-	std::string tmp_left;
-	std::string tmp_right;
-
-	while (j < nL && k < nR)
-	{
-		//kopiere den String und wandle alles in Kleinbuchstaben um
-		tmp_left = left[j];
-		tmp_right = right[k];
-
-		changeToLower(tmp_left);
-		changeToLower(tmp_right);
-
-		if (tmp_left < tmp_right)
-		{
-			liste[i] = left[j];
-			j++;
-		}
-		else
-		{
-			liste[i] = right[k];
-			k++;
-		}
-		i++;
-	}
-
-	while (j < nL)
-	{
-		liste[i] = left[j];
-		j++;
-		i++;
-	}
-
-	while (k < nR)
-	{
-		liste[i] = right[k];
-		k++;
-		i++;
-	}
-}
-
-void Sorter::sort_String(std::vector<std::string> &liste)
-{
-	//mergeSort zum Sortieren eines Vectors mit Integer-Elementen
-	if (liste.size() <= 1)
-		return;
-
-	int mid = liste.size() / 2;
-	std::vector<std::string> left;
-	std::vector<std::string> right;
-	for (size_t j = 0; j < mid; j++)
-	{
-		left.push_back(liste[j]);
-	}
-	for (size_t j = 0; j < (liste.size()) - mid; j++)
-	{
-		right.push_back(liste[mid + j]);
-	}
-
-	sort_String(left);
-	sort_String(right);
-	mergeSort_String(left, right, liste);
-}
-
-void Sorter::test_String()
-{
-	std::vector<std::string> liste;
-	liste.push_back("Hello World");
-	liste.push_back("Hello Student");
-	liste.push_back("Ananas");
-	liste.push_back("ga");
-	liste.push_back("ab");
-	liste.push_back("aa");
-	liste.push_back("db");
-	liste.push_back("ca");
-	liste.push_back("wb");
-	liste.push_back("fa");
-	liste.push_back("ab");
-	liste.push_back("az");
-	liste.push_back("a");
-	liste.push_back("z");
-
-	//std::sort(liste.begin(), liste.end(),compareFunction);
-	sort_String(liste);
-
-	//Ausgabe der Liste zum Testen des Ergbnisses
-	for (auto it = liste.begin(); it != liste.end(); it++)
-	{
-		std::cout << *it << '\n'
-				  << std::endl;
-	}
-}
