@@ -5,8 +5,12 @@
 #include <vector>
 #include <algorithm>
 
+#include "bib-parser/core/types.h"
 #include "bib-parser/bibliography/reference.h"
-#include "bib-parser/bibliography/sorter.h"
+#include "bib-parser/core/sorter.h"
+#include "bib-parser/core/translation-table.h"
+
+#define TUCSE_BIB_PARSER_OUTPUT_TYPES HTML, PDF, XML
 
 namespace TUCSE
 {
@@ -16,13 +20,6 @@ namespace TUCSE
 		Parser(std::string const &inputFilePath, std::string const configFilePath = "", std::string const outputFilePath = "");
 
 		~Parser();
-
-		enum class OutputType
-		{
-			HTML,
-			PDF,
-			XML
-		};
 
 		static std::map<std::string, OutputType> const outputTypeMap;
 
@@ -34,6 +31,11 @@ namespace TUCSE
 
 		void setVerbose(bool const verbose) noexcept;
 		bool getVerbose() const noexcept;
+
+	private:
+		void composeTranslationTable();
+		ConfigSection getConfigSection(std::string const &value);
+		void processConfigLine(std::string const &key, std::string const &value, ConfigSection const section);
 
 	private:
 		std::ifstream inputFile{};
@@ -114,7 +116,10 @@ namespace TUCSE
 		bool citationKeyAlreadyExists(std::string);
 		bool stringIsNumber(std::string);
 		bool keyCharMatch(char);
-		static std::string stringToLower(std::string);		 
+		static std::string stringToLower(std::string);		
+
+		TranslationTable translationTable{};
+
 	};
 } // namespace TUCSE
 

@@ -5,26 +5,30 @@
 
 #include <cli11/cli11.h>
 
+#include <bib-parser/core/error.h>
 #include <bib-parser/core/parser.h>
-#include <bib-parser/bibliography/sorter.h>
+#include <bib-parser/core/sorter.h>
 
 unsigned char const ErrorNone = 0;
 unsigned char const ErrorNoSubcommand = 1;
 unsigned char const ErrorParserException = 2;
 
+using std::cout;
+using std::endl;
+
+using TUCSE::UserError;
+
 int runCheckApp(std::string const &inputFilePath, bool const verbose);
-int runConvertApp(std::string const &inputFilePath, std::string const &outputFilePath, std::string const &configFilePath, TUCSE::Sorter::Criteria const &sortCriteria, TUCSE::Parser::OutputType const &outputType, bool const verbose);
+int runConvertApp(std::string const &inputFilePath, std::string const &outputFilePath, std::string const &configFilePath, TUCSE::Sorter::Criteria const &sortCriteria, TUCSE::OutputType const &outputType, bool const verbose);
 
 int main(int argc, char **argv)
 {
-	TUCSE::Sorter::test_String();
-
 	std::string inputFilePath{""};
 	std::string configFilePath{""};
 	std::string outputFilePath{""};
 
 	TUCSE::Sorter::Criteria sortCriteria{TUCSE::Sorter::Criteria::NoSort};
-	TUCSE::Parser::OutputType outputType{TUCSE::Parser::OutputType::HTML};
+	TUCSE::OutputType outputType{TUCSE::OutputType::HTML};
 
 	bool verbose{false};
 
@@ -38,7 +42,11 @@ int main(int argc, char **argv)
 	convertApp->add_option<std::string, std::string>("-i,--input", inputFilePath, "Path to the input file containing BibTeX definitions.")->required();
 	convertApp->add_option<std::string, std::string>("-o,--output", outputFilePath, "Path pointing to where the output file will be put.")->required();
 	convertApp->add_option<std::string, std::string>("-c,--config", configFilePath, "Path to the configuration file containing translation rules for semantic tags.")->required();
+	convertApp->add_option("-t,--type", outputType, "XML, PDF or HTML")->required()->transform(CLI::CheckedTransformer(TUCSE::Parser::outputTypeMap, CLI::ignore_case));
 	convertApp->add_option("-s,--sort", sortCriteria, "Can be used to sort the BibTeX entries.")->transform(CLI::CheckedTransformer(TUCSE::Sorter::argumentMap, CLI::ignore_case));
+
+	// bib-parser convert -i a.bib -o a.html -c a.ini -t HTML -s author-asc
+	// 
 
 	checkApp->add_option<std::string, std::string>("-i,--input", inputFilePath, "Path to the input file containing BibTeX definitions.")->required();
 
@@ -73,7 +81,7 @@ int runCheckApp(std::string const &inputFilePath, bool const verbose)
 	return ErrorNone;
 }
 
-int runConvertApp(std::string const &inputFilePath, std::string const &outputFilePath, std::string const &configFilePath, TUCSE::Sorter::Criteria const &sortCriteria, TUCSE::Parser::OutputType const &outputType, bool const verbose)
+int runConvertApp(std::string const &inputFilePath, std::string const &outputFilePath, std::string const &configFilePath, TUCSE::Sorter::Criteria const &sortCriteria, TUCSE::OutputType const &outputType, bool const verbose)
 {
 	TUCSE::Parser parser{inputFilePath, configFilePath, outputFilePath};
 	parser.setVerbose(verbose);
@@ -90,8 +98,14 @@ int runConvertApp(std::string const &inputFilePath, std::string const &outputFil
 
 		parser.generateOutput(outputType);
 	}
+	catch (UserError const &userError)
+	{
+		cout << userError.getMessage() << endl;
+		return ErrorParserException;
+	}
 	catch (...)
 	{
+		cout << "Caught unhandled exception, aborting..." << endl;
 		return ErrorParserException;
 	}
 

@@ -33,8 +33,13 @@ unordered_map<FieldType, string> Reference::getFields() const noexcept
 	return fields;
 }
 
+std::string Reference::getFieldValue(FieldType const fieldType) const
+{
+	return fields.at(fieldType);
+}
+
 bool Reference::isValid() const noexcept
 {
 	// TODO: Implement
-	return false;
+	return true;
 }

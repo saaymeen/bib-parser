@@ -1,6 +1,8 @@
 #ifndef TUCSE_BIB_PARSER_FIELD_TYPE_H
 #define TUCSE_BIB_PARSER_FIELD_TYPE_H
 
+#include <map>
+#include <string>
 #include <cstddef>
 
 namespace TUCSE
@@ -34,6 +36,8 @@ namespace TUCSE
 
 		NumberOf, // NOTE: Must always be the last value in the enum
 	};
+
+	extern std::map<std::string, FieldType> const fieldTypeStrings;
 
 	class FieldTypeHash
 	{
