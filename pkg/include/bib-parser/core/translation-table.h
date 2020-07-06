@@ -22,15 +22,15 @@ namespace TUCSE
 		static std::map<std::string, HTMLTag> const htmlTagStrings;
 		static std::map<std::string, PDFType> const pdfTypeStrings;
 
-		std::unordered_map<FieldType, XMLRule> xmlRules;
-		std::unordered_map<FieldType, PDFRule> pdfRules;
-		std::unordered_map<FieldType, HTMLRule> htmlRules;
+	private:
+		std::unordered_map<FieldType, ScalarType> scalarFieldTypes;
+		std::unordered_map<OutputType, std::unordered_map<FieldType, std::shared_ptr<TranslationTableRule>>> rules;
 
-		std::unordered_map<FieldType, ScalarType> fieldScalarTypes;
-		std::unordered_map<OutputType, std::unordered_map<FieldType, std::unique_ptr<TranslationTableRule>>> rules;
-
+	public:
 		void addScalarFieldType(FieldType fieldType, ScalarType scalarType) noexcept;
-		void addRule(OutputType outputType, FieldType fieldType, std::unique_ptr<TranslationTableRule> translationTableRule) noexcept;
+		void addRule(OutputType const outputType, FieldType const fieldType, std::shared_ptr<TranslationTableRule> translationTableRule) noexcept;
+		ScalarType getScalarType(FieldType const fieldType) const;
+		std::shared_ptr<TranslationTableRule> getRule(OutputType const outputType, FieldType const fieldType) const;
 	};
 } // namespace TUCSE
 
