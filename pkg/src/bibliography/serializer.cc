@@ -12,6 +12,14 @@ using TUCSE::Serializer;
 
 bool Serializer::createHTML(std::vector<Reference> &references, std::string htmlName) {
 
+	for (auto const &reference : references)
+	{
+		if (!reference.isValid())
+		{
+			throw new std::exception{};
+		}
+	}
+
 	std::ofstream file;
 	file.open(htmlName + ".html", std::fstream::out);
 
