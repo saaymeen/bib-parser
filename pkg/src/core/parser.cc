@@ -21,6 +21,7 @@ using std::map;
 using std::string;
 using std::vector;
 using TUCSE::Parser;
+using TUCSE::EntryType;
 using OutputType = TUCSE::OutputType;
 using Criteria = TUCSE::Sorter::Criteria;
 using TUCSE::splitString;

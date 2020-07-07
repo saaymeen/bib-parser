@@ -14,6 +14,7 @@ add_library(bib-parser-package STATIC
 	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/entry-type.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/reference.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/field-type.cc
+	${CMAKE_CURRENT_LIST_DIR}/src/bibliography/serializer.cc
 )
 
 if(BIB_PARSER_LOG)
