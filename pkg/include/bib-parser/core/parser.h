@@ -39,6 +39,33 @@ namespace TUCSE
 		void processConfigLine(std::string const &key, std::string const &value, ConfigSection const section);
 		void validateReferences() const;
 
+		void preamble();
+		void comment();
+		void placeholder();
+		void entry(std::string);
+		bool tryMatch(std::string);
+		void match(std::string);
+		void skipWhitespace();
+		static bool isWhitespace(char);
+		char curr();
+		std::string valueBraces();
+		std::string valueQuotes();
+		std::string key();
+		std::string value();
+		std::string singleValue();
+		std::string directive();
+		std::pair<std::string, std::string> keyEqualsValue();
+		void keyValueList(std::string, EntryType);
+		static EntryType asEntryType(std::string);
+		static FieldType asFieldType(std::string);
+
+		bool citationKeyAlreadyExists(std::string);
+		bool stringIsNumber(std::string);
+		bool keyCharMatch(char);
+		static std::string stringToLower(std::string);
+
+		std::string readFileString();
+
 	private:
 		std::ifstream inputFile{};
 		std::ifstream configFile{};
@@ -88,37 +115,6 @@ namespace TUCSE
 		std::string input;
 		//position "cursor" in input file
 		size_t pos;
-
-		std::string readFileString();
-
-		//Parsing Helper Functions
-
-		void preamble();
-		void comment();
-		void placeholder();
-		void entry(std::string);
-		bool tryMatch(std::string);
-		void match(std::string);
-		void skipWhitespace();
-		static bool isWhitespace(char);
-		char curr();
-		std::string valueBraces();
-		std::string valueQuotes();
-		std::string key();
-		std::string value();
-		std::string singleValue();
-		std::string directive();
-		std::pair<std::string, std::string> keyEqualsValue();
-		void keyValueList(std::string, EntryType);
-		static EntryType asEntryType(std::string);
-		static FieldType asFieldType(std::string);
-
-		//String Helper Funtions
-
-		bool citationKeyAlreadyExists(std::string);
-		bool stringIsNumber(std::string);
-		bool keyCharMatch(char);
-		static std::string stringToLower(std::string);
 
 		std::shared_ptr<TranslationTable> translationTable;
 	};
