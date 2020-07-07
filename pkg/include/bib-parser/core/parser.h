@@ -54,6 +54,7 @@ namespace TUCSE
 		std::string value();
 		std::string singleValue();
 		std::string directive();
+		std::string parseFieldValue(TUCSE::FieldType, std::string); 
 		std::pair<std::string, std::string> keyEqualsValue();
 		void keyValueList(std::string, EntryType);
 		static EntryType asEntryType(std::string);

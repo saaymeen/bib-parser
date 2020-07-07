@@ -546,12 +546,17 @@ void Parser::keyValueList(std::string key, EntryType entryType)
 
 		std::unordered_map<FieldType, std::string> fields = ref.getFields();
 		if (fields.find(temp) == fields.end())
-			ref.addField(temp, kvPair.second);
+			ref.addField(temp, parseFieldValue(temp, kvPair.second));
+			
 	}
 
 	//only add new reference, if the key isn't being used already
 	if (!citationKeyAlreadyExists(ref.getCitationKey()))
 		this->references.push_back(ref);
+}
+
+std::string Parser::parseFieldValue(FieldType fieldType, std::string value) {
+	//TODO implement 
 }
 
 ///return the string as parsed EntryType
