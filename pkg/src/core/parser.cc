@@ -666,7 +666,7 @@ bool Parser::keyCharMatch(char c)
 std::string Parser::stringToLower(std::string input)
 {
 	std::string temp;
-	for (std::string::iterator iter = input.begin(); iter == input.end(); ++iter)
+	for (std::string::iterator iter = input.begin(); iter != input.end(); ++iter)
 		temp.push_back(tolower(*iter));
 	return temp;
 }
