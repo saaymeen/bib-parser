@@ -50,21 +50,20 @@ namespace TUCSE
 		char curr();
 		std::string valueBraces();
 		std::string valueQuotes();
-		std::string key();
+		std::string key(bool);
 		std::string value();
 		std::string singleValue();
 		std::string directive();
 		std::pair<std::string, std::string> keyEqualsValue();
 		void keyValueList(std::string, EntryType);
-		static EntryType asEntryType(std::string);
-		static FieldType asFieldType(std::string);
 
 		bool citationKeyAlreadyExists(std::string);
 		bool stringIsNumber(std::string);
+		std::string trim(std::string); 
 		bool keyCharMatch(char);
 		static std::string stringToLower(std::string);
 
-		std::string readFileString();
+		std::string readFileString();		
 
 	private:
 		std::ifstream inputFile{};
@@ -72,25 +71,6 @@ namespace TUCSE
 		std::ofstream outputFile{};
 
 		bool verbose{false};
-
-		enum ParserException : uint8_t
-		{
-			//different thingy expected
-			TokenMismatch = 0x00,
-			EqualSignExpected,
-			UnterminatedValue,
-			UnexpectedValue,
-
-			//completely wrong
-			UnknownEntryType,
-			UnknwonFieldType,
-
-			//missing brace
-			RunawayKey,
-			RunawayComment,
-
-			NumberOf, // Must always be the last value in the enum
-		};
 
 		std::vector<Reference> references{};
 

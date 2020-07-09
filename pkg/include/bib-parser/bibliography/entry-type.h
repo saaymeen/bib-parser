@@ -29,6 +29,8 @@ namespace TUCSE
 		NumberOf, // NOTE: Must always be the last value in the enum
 	};
 
+	extern std::map<std::string, EntryType> const entryTypeStrings;
+
 	std::vector<FieldType> getOptionalFieldTypes(EntryType const entryType) noexcept;
 	std::vector<FieldType> getRequiredFieldTypes(EntryType const entryType) noexcept;
 	std::vector<FieldType> getIgnoredFieldTypes(EntryType const entryType) noexcept;
