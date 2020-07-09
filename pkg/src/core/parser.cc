@@ -300,7 +300,7 @@ void Parser::comment()
 	while (true)
 	{
 		if (this->pos == this->input.length())
-			throw ParserException::RunawayComment;
+			throw UserError("Runaway comment");
 
 		if (curr() != '}')
 			++this->pos;
@@ -320,10 +320,15 @@ void Parser::placeholder()
 ///handles "normal" entries
 void Parser::entry(std::string dir)
 {
-	std::string citeKey = key();
-	auto entryType = asEntryType(dir.substr(1));
-	if (entryType == EntryType::NumberOf)
-		throw ParserException::UnknownEntryType;
+	std::string citeKey = key(true); 
+	EntryType entryType; 
+	try {
+		entryType = entryTypeStrings.at(dir.substr(1)); 
+	}
+	catch (out_of_range const &exception)
+	{
+		throw UserError("Unknown Entrytype: " + dir.substr(1)); 
+	}		
 
 	match(",");
 	keyValueList(citeKey, entryType);
@@ -349,7 +354,7 @@ void Parser::match(std::string s_match)
 	if (this->input.substr(this->pos, s_match.length()) == s_match)
 		this->pos += s_match.length();
 	else
-		throw ParserException::TokenMismatch;
+		throw UserError("Token mismatch"); 
 	skipWhitespace();
 }
 
@@ -384,7 +389,15 @@ bool Parser::isWhitespace(char in)
 //shortcut for current char -> position in input string
 char Parser::curr()
 {
-	return this->input.at(this->pos);
+	char c; 
+	try {
+		c = this->input.at(this->pos); 
+	}
+	catch (out_of_range const &exception)
+	{ 
+		c = 0; 
+	}	
+	return c; 
 }
 
 ///handle value withing braces
@@ -404,13 +417,13 @@ std::string Parser::valueBraces()
 			{
 				auto end = this->pos;
 				match("}");
-				return this->input.substr(start, end - start);
+				return parseFieldValue(this->input.substr(start, end - start));
 			}
 		}
 		else if (curr() == '{')
 			++braceCount;
 		else if (this->pos == this->input.length() - 1)
-			throw ParserException::UnterminatedValue;
+			throw UserError("Unterminated Value"); 
 
 		++this->pos;
 	}
@@ -427,10 +440,10 @@ std::string Parser::valueQuotes()
 		{
 			auto end = this->pos;
 			match("\"");
-			return this->input.substr(start, end - start);
+			return parseFieldValue(this->input.substr(start, end - start));
 		}
 		else if (this->pos == this->input.length() - 1)
-			throw ParserException::UnterminatedValue;
+			throw UserError("Unterminated Value"); 
 
 		++this->pos;
 	}
@@ -438,20 +451,20 @@ std::string Parser::valueQuotes()
 
 ///grab the next "non-structure" characters (-> the chars building the actual data)
 ///more precise: return those "non-structure" chars from the current pos to the pos of the next structure char
-std::string Parser::key()
+std::string Parser::key(bool caseSensitive)
 {
 	auto start = this->pos;
 	while (true)
 	{
 		if (this->pos == this->input.length())
-			throw ParserException::RunawayKey; //no structure char found -> key wasn't terminated
+			throw UserError("Runaway Key"); //no structure char found -> key wasn't terminated
 
 		if (keyCharMatch(curr()))
 			//non-structure char -> move "cursor"
 			++this->pos;
 		else
 			//structure char hit, return collected chars as string
-			return stringToLower(this->input.substr(start, this->pos - start));
+			return caseSensitive ? trim(this->input.substr(start, this->pos - start)) : stringToLower(trim(this->input.substr(start, this->pos - start)));
 	}
 }
 
@@ -466,12 +479,6 @@ std::string Parser::value()
 		match("#");
 		values.append(singleValue());
 	}
-
-	//TODO: implement the value parsing properly!
-	//currently, all this function does, is substituting placeholers and concatenating the pieces together
-	//mutated vowel, special characters etc, are not getting parsed properly.
-	//EXAMPLE: "V{\"o}lter" should be "Völter" -> this doesn't work right now.
-
 	return values;
 }
 
@@ -489,7 +496,7 @@ std::string Parser::singleValue()
 	{
 		//the value has neither braces nor quotes surrounding it
 
-		auto k = key(); //-> value
+		auto k = key(false); //-> value
 		//if k is placeholder, use placeholder to substitute
 		if (this->placeholders.find(k) != this->placeholders.end())
 			return placeholders.at(k);
@@ -498,7 +505,7 @@ std::string Parser::singleValue()
 			return k;
 		//value is invalid or empty
 		else
-			throw ParserException::UnexpectedValue;
+			throw UserError("Unexpected Value:  " + k); 
 	}
 }
 
@@ -506,13 +513,13 @@ std::string Parser::singleValue()
 std::string Parser::directive()
 {
 	match("@");
-	return "@" + key();
+	return "@" + key(false);
 }
 
 ///parses key and value out of "key = value"-strings
 std::pair<std::string, std::string> Parser::keyEqualsValue()
 {
-	std::string k = key();
+	std::string k = key(false);
 	if (tryMatch("="))
 	{
 		match("=");
@@ -520,7 +527,7 @@ std::pair<std::string, std::string> Parser::keyEqualsValue()
 		return std::pair<std::string, std::string>(k, v);
 	}
 	else
-		throw ParserException::EqualSignExpected;
+		throw UserError("... = value expected, equals sign missing:"); 
 }
 
 ///parses the fieldList of entries using keyEqualsValue()
@@ -529,113 +536,40 @@ void Parser::keyValueList(std::string key, EntryType entryType)
 	Reference ref = Reference(key, entryType);
 
 	auto kvPair = keyEqualsValue();
-	auto temp = asFieldType(kvPair.first);
-	if (temp == FieldType::NumberOf)
-		throw ParserException::UnknwonFieldType;
+	FieldType fieldType; 
 
-	ref.addField(asFieldType(kvPair.first), kvPair.second);
+	try
+	{
+		fieldType = fieldTypeStrings.at(kvPair.first); 
+		ref.addField(fieldType, kvPair.second);
+	}
+	catch (out_of_range const &exception)
+	{ // non-standard field types are valid, but will be ignored 
+	}		
+	
 	while (tryMatch(","))
 	{
 		match(",");
 		if (tryMatch("}"))
 			break;
 		kvPair = keyEqualsValue();
-		auto temp = asFieldType(kvPair.first);
-		if (temp == FieldType::NumberOf)
-			throw ParserException::UnknwonFieldType;
 
-		std::unordered_map<FieldType, std::string> fields = ref.getFields();
-		if (fields.find(temp) == fields.end())
-			ref.addField(temp, parseFieldValue(temp, kvPair.second));
-			
+		try 
+		{
+			fieldType = fieldTypeStrings.at(kvPair.first); 
+			std::unordered_map<FieldType, std::string> fields = ref.getFields();
+			if (fields.find(fieldType) == fields.end())
+				ref.addField(fieldType, kvPair.second);
+		}
+		catch (out_of_range const &exception)
+		{ // non-standard field types are valid, but will be ignored 
+		}		
 	}
 
 	//only add new reference, if the key isn't being used already
 	if (!citationKeyAlreadyExists(ref.getCitationKey()))
 		this->references.push_back(ref);
 }
-
-std::string Parser::parseFieldValue(FieldType fieldType, std::string value) {
-	//TODO implement 
-}
-
-///return the string as parsed EntryType
-///if the string to be parsed doesn't match any EntryTypes, EntryType::NumberOf will be returned
-TUCSE::EntryType Parser::asEntryType(std::string keywordText)
-{
-	auto input = stringToLower(keywordText);
-
-	static std::unordered_map<std::string, EntryType> const table =
-		{
-			{"article", EntryType::Article},
-			{"book", EntryType::Book},
-			{"booklet", EntryType::Booklet},
-			{"conference", EntryType::Conference},
-			{"inbook", EntryType::InBook},
-			{"incollection", EntryType::InCollection},
-			{"inproceedings", EntryType::InProceedings},
-			{"manual", EntryType::Manual},
-			{"mastersthesis", EntryType::MastersThesis},
-			{"misc", EntryType::Miscellaneous},
-			{"phdthesis", EntryType::PHDThesis},
-			{"proceedings", EntryType::Proceedings},
-			{"techreport", EntryType::TechReport},
-			{"unpublished", EntryType::Unpublished}};
-	auto entry = table.find(input);
-	if (entry != table.end())
-	{
-		return entry->second;
-	}
-	else
-		return EntryType::NumberOf;
-}
-
-///return the string as parsed FieldType
-///if the string to be parsed doesn't match any FieldTypes, FieldType::NumberOf will be returned
-TUCSE::FieldType Parser::asFieldType(std::string fieldText)
-{
-	auto input = stringToLower(fieldText);
-
-	static std::unordered_map<std::string, FieldType> const table =
-		{
-			{"address", FieldType::Address},
-			{"annote", FieldType::Address},
-			{"author", FieldType::Address},
-			{"booktitle", FieldType::Address},
-			{"chapter", FieldType::Address},
-			{"crossref", FieldType::Address},
-			{"edition", FieldType::Address},
-			{"editor", FieldType::Address},
-			{"howpublished", FieldType::Address},
-			{"institution", FieldType::Address},
-			{"journal", FieldType::Address},
-			{"key", FieldType::Address},
-			{"month", FieldType::Address},
-			{"note", FieldType::Address},
-			{"number", FieldType::Address},
-			{"organization", FieldType::Address},
-			{"pages", FieldType::Address},
-			{"publisher", FieldType::Address},
-			{"school", FieldType::Address},
-			{"series", FieldType::Address},
-			{"title", FieldType::Address},
-			{"type", FieldType::Address},
-			{"volume", FieldType::Address},
-			{"year", FieldType::Address}};
-	auto fieldType = table.find(input);
-	if (fieldType != table.end())
-	{
-		return fieldType->second;
-	}
-	else
-		return FieldType::NumberOf;
-}
-
-/*
-	#####################################################################################
-	### String Helper Funtions
-	#####################################################################################
-	*/
 
 ///bibtex standard requires, that if two or more entries use the same citation key, only the first one will be used further; the remaining ones will be ignored
 bool Parser::citationKeyAlreadyExists(std::string key)
@@ -671,7 +605,19 @@ bool Parser::keyCharMatch(char c)
 std::string Parser::stringToLower(std::string input)
 {
 	std::string temp;
-	for (std::string::iterator iter = input.begin(); iter == input.end(); ++iter)
+	for (std::string::iterator iter = input.begin(); iter != input.end(); ++iter)
 		temp.push_back(tolower(*iter));
 	return temp;
+}
+
+std::string Parser::trim(std::string input) {
+	const std::string whitespace = " \t\v\r\n";
+	size_t start = input.find_first_not_of(whitespace); 
+	size_t end = input.find_last_not_of(whitespace);   
+	return start == end ? std::string() : input.substr(start, end - start + 1);
+}
+
+std::string Parser::parseFieldValue(std::string value) {
+	//TODO implement 
+	return value; 
 }
