@@ -619,5 +619,6 @@ std::string Parser::trim(std::string input) {
 
 std::string Parser::parseFieldValue(std::string value) {
 	//TODO implement 
-	return value; 
+
+	return value.at(0) == '{' && value.at(value.length()-1) == '}' ? value.substr(1, value.length() - 2) : value; 
 }
