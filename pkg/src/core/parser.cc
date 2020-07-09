@@ -656,12 +656,15 @@ bool Parser::stringIsNumber(std::string s)
 	return !s.empty() && iter == s.end();
 }
 
-///used to determine non-structure chars
+///checks whether the used chars are valid for bibtex-keys
 bool Parser::keyCharMatch(char c)
 {
-	const std::string allowedChars = "[a-zA-Z0-9_:\\./-]";
-	auto result = allowedChars.find_first_of(c);
-	return result != std::string::npos;
+	if(isalnum(c))
+		return true; 
+
+	std::string disallowedChars = "\"#'(),={}%~\\"; 
+	auto result = disallowedChars.find_first_of(c); 
+	return result == string::npos; 
 }
 
 ///uses the tolower()-function on every char of the string
