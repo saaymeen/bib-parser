@@ -9,9 +9,9 @@
 #include "bib-parser/core/parser.h"
 #include "core/log.h"
 #include "bib-parser/bibliography/field-type.h"
-#include "bib-parser/core/html-rule.h"
-#include "bib-parser/core/xml-rule.h"
-#include "bib-parser/core/pdf-rule.h"
+#include "bib-parser/translation/html-rule.h"
+#include "bib-parser/translation/xml-rule.h"
+#include "bib-parser/translation/pdf-rule.h"
 #include "bib-parser/core/types.h"
 #include "bib-parser/core/error.h"
 
@@ -20,8 +20,8 @@ using std::endl;
 using std::map;
 using std::string;
 using std::vector;
-using TUCSE::Parser;
 using TUCSE::EntryType;
+using TUCSE::Parser;
 using OutputType = TUCSE::OutputType;
 using Criteria = TUCSE::Sorter::Criteria;
 using TUCSE::splitString;
@@ -320,15 +320,16 @@ void Parser::placeholder()
 ///handles "normal" entries
 void Parser::entry(std::string dir)
 {
-	std::string citeKey = key(true); 
-	EntryType entryType; 
-	try {
-		entryType = entryTypeStrings.at(dir.substr(1)); 
+	std::string citeKey = key(true);
+	EntryType entryType;
+	try
+	{
+		entryType = entryTypeStrings.at(dir.substr(1));
 	}
 	catch (out_of_range const &exception)
 	{
-		throw UserError("Unknown Entrytype: " + dir.substr(1)); 
-	}		
+		throw UserError("Unknown Entrytype: " + dir.substr(1));
+	}
 
 	match(",");
 	keyValueList(citeKey, entryType);
@@ -354,7 +355,7 @@ void Parser::match(std::string s_match)
 	if (this->input.substr(this->pos, s_match.length()) == s_match)
 		this->pos += s_match.length();
 	else
-		throw UserError("Token mismatch"); 
+		throw UserError("Token mismatch");
 	skipWhitespace();
 }
 
@@ -389,15 +390,16 @@ bool Parser::isWhitespace(char in)
 //shortcut for current char -> position in input string
 char Parser::curr()
 {
-	char c; 
-	try {
-		c = this->input.at(this->pos); 
+	char c;
+	try
+	{
+		c = this->input.at(this->pos);
 	}
 	catch (out_of_range const &exception)
-	{ 
-		c = 0; 
-	}	
-	return c; 
+	{
+		c = 0;
+	}
+	return c;
 }
 
 ///handle value withing braces
@@ -423,7 +425,7 @@ std::string Parser::valueBraces()
 		else if (curr() == '{')
 			++braceCount;
 		else if (this->pos == this->input.length() - 1)
-			throw UserError("Unterminated Value"); 
+			throw UserError("Unterminated Value");
 
 		++this->pos;
 	}
@@ -443,7 +445,7 @@ std::string Parser::valueQuotes()
 			return this->input.substr(start, end - start);
 		}
 		else if (this->pos == this->input.length() - 1)
-			throw UserError("Unterminated Value"); 
+			throw UserError("Unterminated Value");
 
 		++this->pos;
 	}
@@ -511,7 +513,7 @@ std::string Parser::singleValue()
 			return k;
 		//value is invalid or empty
 		else
-			throw UserError("Unexpected Value:  " + k); 
+			throw UserError("Unexpected Value:  " + k);
 	}
 }
 
@@ -533,7 +535,7 @@ std::pair<std::string, std::string> Parser::keyEqualsValue()
 		return std::pair<std::string, std::string>(k, v);
 	}
 	else
-		throw UserError("... = value expected, equals sign missing:"); 
+		throw UserError("... = value expected, equals sign missing:");
 }
 
 ///parses the fieldList of entries using keyEqualsValue()
@@ -542,17 +544,17 @@ void Parser::keyValueList(std::string key, EntryType entryType)
 	Reference ref = Reference(key, entryType);
 
 	auto kvPair = keyEqualsValue();
-	FieldType fieldType; 
+	FieldType fieldType;
 
 	try
 	{
-		fieldType = fieldTypeStrings.at(kvPair.first); 
+		fieldType = fieldTypeStrings.at(kvPair.first);
 		ref.addField(fieldType, kvPair.second);
 	}
 	catch (out_of_range const &exception)
-	{ // non-standard field types are valid, but will be ignored 
-	}		
-	
+	{ // non-standard field types are valid, but will be ignored
+	}
+
 	while (tryMatch(","))
 	{
 		match(",");
@@ -560,16 +562,16 @@ void Parser::keyValueList(std::string key, EntryType entryType)
 			break;
 		kvPair = keyEqualsValue();
 
-		try 
+		try
 		{
-			fieldType = fieldTypeStrings.at(kvPair.first); 
+			fieldType = fieldTypeStrings.at(kvPair.first);
 			std::unordered_map<FieldType, std::string> fields = ref.getFields();
 			if (fields.find(fieldType) == fields.end())
 				ref.addField(fieldType, kvPair.second);
 		}
 		catch (out_of_range const &exception)
-		{ // non-standard field types are valid, but will be ignored 
-		}		
+		{ // non-standard field types are valid, but will be ignored
+		}
 	}
 
 	//only add new reference, if the key isn't being used already
@@ -605,12 +607,12 @@ bool Parser::stringIsNumber(std::string s)
 ///checks whether the used chars are valid for bibtex-keys
 bool Parser::keyCharMatch(char c)
 {
-	if(isalnum(c))
-		return true; 
+	if (isalnum(c))
+		return true;
 
-	std::string disallowedChars = "\"#'(),={}%~\\"; 
-	auto result = disallowedChars.find_first_of(c); 
-	return result == string::npos; 
+	std::string disallowedChars = "\"#'(),={}%~\\";
+	auto result = disallowedChars.find_first_of(c);
+	return result == string::npos;
 }
 
 ///uses the tolower()-function on every char of the string
@@ -622,9 +624,10 @@ std::string Parser::stringToLower(std::string input)
 	return temp;
 }
 
-std::string Parser::trim(std::string input) {
+std::string Parser::trim(std::string input)
+{
 	const std::string whitespace = " \t\v\r\n";
-	size_t start = input.find_first_not_of(whitespace); 
-	size_t end = input.find_last_not_of(whitespace);   
+	size_t start = input.find_first_not_of(whitespace);
+	size_t end = input.find_last_not_of(whitespace);
 	return start == end ? std::string() : input.substr(start, end - start + 1);
 }

@@ -9,9 +9,7 @@
 #include "bib-parser/core/types.h"
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/core/sorter.h"
-#include "bib-parser/core/translation-table.h"
-
-#define TUCSE_BIB_PARSER_OUTPUT_TYPES HTML, PDF, XML
+#include "bib-parser/translation/translation-table.h"
 
 namespace TUCSE
 {
@@ -59,11 +57,11 @@ namespace TUCSE
 
 		bool citationKeyAlreadyExists(std::string);
 		bool stringIsNumber(std::string);
-		std::string trim(std::string); 
+		std::string trim(std::string);
 		bool keyCharMatch(char);
 		static std::string stringToLower(std::string);
 
-		std::string readFileString();		
+		std::string readFileString();
 
 	private:
 		std::ifstream inputFile{};

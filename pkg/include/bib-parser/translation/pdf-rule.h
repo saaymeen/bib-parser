@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "bib-parser/core/translation-table-rule.h"
+#include "bib-parser/translation/translation-table-rule.h"
 #include "bib-parser/core/types.h"
 
 namespace TUCSE

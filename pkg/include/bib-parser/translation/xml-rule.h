@@ -4,7 +4,7 @@
 #include <string>
 
 #include "bib-parser/bibliography/field-type.h"
-#include "bib-parser/core/translation-table-rule.h"
+#include "bib-parser/translation/translation-table-rule.h"
 
 namespace TUCSE
 {

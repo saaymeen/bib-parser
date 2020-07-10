@@ -1,7 +1,7 @@
 #include <memory>
 #include <utility>
 
-#include "bib-parser/core/translation-table.h"
+#include "bib-parser/translation/translation-table.h"
 #include "bib-parser/core/types.h"
 
 using std::move;

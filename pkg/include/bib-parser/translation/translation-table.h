@@ -8,9 +8,9 @@
 #include <unordered_map>
 
 #include "bib-parser/bibliography/field-type.h"
-#include "bib-parser/core/xml-rule.h"
-#include "bib-parser/core/pdf-rule.h"
-#include "bib-parser/core/html-rule.h"
+#include "bib-parser/translation/xml-rule.h"
+#include "bib-parser/translation/pdf-rule.h"
+#include "bib-parser/translation/html-rule.h"
 #include "bib-parser/core/types.h"
 
 namespace TUCSE
