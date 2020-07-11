@@ -5,16 +5,20 @@
 
 #include "bib-parser/bibliography/field-type.h"
 #include "bib-parser/translation/translation-table-rule.h"
+#include "bib-parser/core/types.h"
+#include "bib-parser/bibliography/field-type.h"
 
 namespace TUCSE
 {
 	class XMLRule : public TranslationTableRule
 	{
 	public:
-		XMLRule(std::string tag) : tag{tag}
+		XMLRule(FieldType const fieldType, ScalarType const scalarType, std::string const tag)
+			: tag{tag}, TranslationTableRule{fieldType, scalarType}
 		{
-			TranslationTableRule();
 		}
+
+		void apply(SerializerDependencies const &dependencies) const noexcept;
 
 	private:
 		std::string const tag;

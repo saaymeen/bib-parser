@@ -5,16 +5,21 @@
 
 #include "bib-parser/translation/translation-table-rule.h"
 #include "bib-parser/core/types.h"
+#include "bib-parser/core/serializer-dependencies.h"
+#include "bib-parser/core/types.h"
+#include "bib-parser/bibliography/field-type.h"
 
 namespace TUCSE
 {
 	class PDFRule : public TranslationTableRule
 	{
 	public:
-		PDFRule(PDFType type) : type{type}
+		PDFRule(FieldType const fieldType, ScalarType const scalarType, PDFType type)
+			: type{type}, TranslationTableRule{fieldType, scalarType}
 		{
-			TranslationTableRule();
 		}
+
+		void apply(SerializerDependencies const &dependencies) const noexcept;
 
 	private:
 		PDFType const type;

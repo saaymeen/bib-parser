@@ -66,7 +66,7 @@ namespace TUCSE
 	private:
 		std::ifstream inputFile{};
 		std::ifstream configFile{};
-		std::ofstream outputFile{};
+		std::shared_ptr<std::ofstream> outputFile{};
 
 		bool verbose{false};
 

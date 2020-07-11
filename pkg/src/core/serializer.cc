@@ -1,12 +1,90 @@
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/core/serializer.h"
+#include "bib-parser/core/error.h"
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <cassert>
 
 using TUCSE::Reference;
 using TUCSE::Serializer;
+using TUCSE::SerializerDependencies;
+using OutputType = TUCSE::OutputType;
+using TUCSE::TranslationTable;
+
+Serializer::Serializer(SerializerDependencies const dependencies)
+	: dependencies{dependencies}
+{
+}
+
+void Serializer::beginDocument()
+{
+	switch (outputType)
+	{
+	case OutputType::HTML:
+		beginHTMLDocument();
+		break;
+
+	default:
+		SerializerUnknownOutputType suot;
+		throw suot;
+	}
+}
+
+void Serializer::writeReference(Reference const &reference)
+{
+	assert(translationTable);
+
+	switch (outputType)
+	{
+	case OutputType::HTML:
+		writeHTMLReference(reference);
+		break;
+
+	default:
+		SerializerUnknownOutputType suot;
+		throw suot;
+	}
+}
+
+void Serializer::endDocument()
+{
+	switch (outputType)
+	{
+	case OutputType::HTML:
+		endHTMLDocument();
+		break;
+
+	default:
+		SerializerEndDocument sed;
+		throw sed;
+	}
+}
+
+void Serializer::beginHTMLDocument()
+{
+	*(dependencies.htmlOutputFile.get()) << "Hello";
+}
+
+void Serializer::writeHTMLReference(Reference const &reference)
+{
+}
+
+void Serializer::endHTMLDocument()
+{
+	*(dependencies.htmlOutputFile.get()) << " world!";
+}
+
+void Serializer::setOutputType(OutputType const outputType) noexcept
+{
+	this->outputType = outputType;
+}
+
+void Serializer::setTranslationTable(std::shared_ptr<TranslationTable> translationTable) noexcept
+{
+	this->translationTable = translationTable;
+}
 
 bool Serializer::createHTML(std::vector<Reference> &references, std::string htmlName)
 {
@@ -15,7 +93,8 @@ bool Serializer::createHTML(std::vector<Reference> &references, std::string html
 	{
 		if (!reference.isValid())
 		{
-			throw new std::exception{};
+			SerializerRefNotValid srn;
+			throw srn;
 		}
 	}
 

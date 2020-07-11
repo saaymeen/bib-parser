@@ -5,16 +5,19 @@
 
 #include "bib-parser/core/types.h"
 #include "bib-parser/translation/translation-table-rule.h"
+#include "bib-parser/bibliography/field-type.h"
 
 namespace TUCSE
 {
 	class HTMLRule : public TranslationTableRule
 	{
 	public:
-		HTMLRule(HTMLTag tag) : tag{tag}
+		HTMLRule(FieldType const fieldType, ScalarType const scalarType, HTMLTag tag)
+			: tag{tag}, TranslationTableRule{fieldType, scalarType}
 		{
-			TranslationTableRule();
 		}
+
+		void apply(SerializerDependencies const &dependencies) const noexcept;
 
 	private:
 		HTMLTag const tag;

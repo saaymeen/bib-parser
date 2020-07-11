@@ -9,6 +9,7 @@
 #include "bib-parser/core/sorter.h"
 #include "bib-parser/core/util.h"
 #include "bib-parser/bibliography/field-type.h"
+#include "bib-parser/core/error.h"
 
 using TUCSE::Reference;
 using TUCSE::Sorter;
@@ -33,7 +34,8 @@ void Sorter::apply(std::vector<Reference> &references) const
 	{
 		if (!reference.isValid())
 		{
-			throw new std::exception{};
+			SorterRefNotValid srn;
+			throw srn;
 		}
 	}
 
@@ -50,7 +52,7 @@ void Sorter::apply(std::vector<Reference> &references) const
 			return compareYearAsc(left, right);
 		case Criteria::YearDesc:
 			return compareYearDesc(left, right);
-	/*	case Criteria::EntryTypeAsc: 
+			/*	case Criteria::EntryTypeAsc: 
 			return compareEntryTypeAsc(left, right);
 		case Criteria::EntryTypeDesc:
 			return compareEntryTypeDesc(left, right);*/
@@ -145,7 +147,7 @@ bool Sorter::compareAuthorDesc(Reference const &left, Reference const &right) no
 	return leftValue > rightValue;
 }
 
-bool Sorter::compareYearAsc(Reference const& left, Reference const& right) noexcept
+bool Sorter::compareYearAsc(Reference const &left, Reference const &right) noexcept
 {
 	string leftValue;
 	string rightValue;
@@ -154,7 +156,7 @@ bool Sorter::compareYearAsc(Reference const& left, Reference const& right) noexc
 	{
 		leftValue = left.getFieldValue(FieldType::Year);
 	}
-	catch (std::out_of_range const& exception)
+	catch (std::out_of_range const &exception)
 	{
 		return false;
 	}
@@ -163,7 +165,7 @@ bool Sorter::compareYearAsc(Reference const& left, Reference const& right) noexc
 	{
 		rightValue = right.getFieldValue(FieldType::Year);
 	}
-	catch (std::out_of_range const& exception)
+	catch (std::out_of_range const &exception)
 	{
 		return true;
 	}
@@ -198,14 +200,13 @@ bool Sorter::compareYearDesc(Reference const &left, Reference const &right) noex
 }
 
 //TO-DO: test
-bool Sorter::compareCitationKeyAsc(Reference const& left, Reference const& right) noexcept
+bool Sorter::compareCitationKeyAsc(Reference const &left, Reference const &right) noexcept
 {
 	string leftValue;
 	string rightValue;
-	
+
 	leftValue = left.getCitationKey();
 	rightValue = right.getCitationKey();
-
 
 	return leftValue < rightValue;
 }
@@ -275,7 +276,6 @@ bool Sorter::compareEntryTypeDesc(Reference const& left, Reference const& right)
 	// hier wird der eigentliche vergleich ausgeführt, d.h. rechts und links haben jeweils einen autor
 	return leftValue > rightValue;
 }*/
-
 
 std::map<std::string, Sorter::Criteria> const TUCSE::Sorter::argumentMap{
 	{"author-asc", Criteria::AuthorAsc},

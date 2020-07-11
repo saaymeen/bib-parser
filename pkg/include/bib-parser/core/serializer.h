@@ -1,11 +1,17 @@
 #ifndef TUCSE_BIB_PARSER_SERIALIZER_H
 #define TUCSE_BIB_PARSER_SERIALIZER_H
 
+#include <fstream>
+#include <memory>
+#include <unordered_map>
+
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/bibliography/entry-type.h"
 #include "bib-parser/bibliography/field-type.h"
-#include <fstream>
-#include <unordered_map>
+#include "bib-parser/core/types.h"
+#include "bib-parser/translation/translation-table.h"
+#include "bib-parser/bibliography/reference.h"
+#include "bib-parser/core/serializer-dependencies.h"
 
 namespace TUCSE
 {
@@ -14,7 +20,26 @@ namespace TUCSE
 	public:
 		bool createHTML(std::vector<Reference> &references, std::string htmlName);
 
+		Serializer(SerializerDependencies const dependencies);
+
+		void beginDocument();
+		void writeReference(Reference const &reference);
+		void endDocument();
+
+		void setOutputType(OutputType const outputType) noexcept;
+		void setTranslationTable(std::shared_ptr<TranslationTable> translationTable) noexcept;
+
 	private:
+		void beginHTMLDocument();
+		void writeHTMLReference(Reference const &reference);
+		void endHTMLDocument();
+
+	private:
+		std::shared_ptr<TranslationTable> translationTable{nullptr};
+
+		OutputType outputType{OutputType::HTML};
+		SerializerDependencies const dependencies;
+
 		std::unordered_map<TUCSE::EntryType, std::string> entryTypeToString = {
 			{TUCSE::EntryType::Article, "Article"},
 			{TUCSE::EntryType::Book, "Book"},

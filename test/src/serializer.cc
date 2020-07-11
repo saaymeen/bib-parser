@@ -55,8 +55,8 @@ SCENARIO("creating HTML document with Serializer class", "[Serializer]")
 
 		WHEN("the serializer creates the document")
 		{
-			Serializer serializer;
-			serializer.createHTML(references, htmlName);
+			// Serializer serializer;
+			// serializer.createHTML(references, htmlName);
 
 			THEN("there should be a html document in the current directory")
 			{

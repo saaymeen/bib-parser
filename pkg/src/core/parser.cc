@@ -14,6 +14,8 @@
 #include "bib-parser/translation/pdf-rule.h"
 #include "bib-parser/core/types.h"
 #include "bib-parser/core/error.h"
+#include "bib-parser/core/serializer.h"
+#include "bib-parser/core/serializer-dependencies.h"
 
 using std::cout;
 using std::endl;
@@ -35,10 +37,10 @@ using std::unique_ptr;
 using PDFType = TUCSE::PDFType;
 using HTMLTag = TUCSE::HTMLTag;
 using std::make_shared;
+using std::ofstream;
 using std::out_of_range;
 using std::shared_ptr;
 using std::to_string;
-using TUCSE::UserError;
 
 map<string, OutputType> const Parser::outputTypeMap{
 	{"pdf", OutputType::PDF},
@@ -46,7 +48,7 @@ map<string, OutputType> const Parser::outputTypeMap{
 	{"html", OutputType::HTML}};
 
 Parser::Parser(string const &inputFilePath, string const configFilePath, string const outputFilePath)
-	: inputFile{inputFilePath}, configFile{configFilePath}, outputFile{outputFilePath}, translationTable{make_shared<TranslationTable>()}
+	: inputFile{inputFilePath}, configFile{configFilePath}, outputFile{make_shared<ofstream>(outputFilePath)}, translationTable{make_shared<TranslationTable>()}
 {
 }
 
@@ -56,25 +58,29 @@ Parser::~Parser()
 
 	inputFile.close();
 	configFile.close();
-	outputFile.close();
+	outputFile->close();
 }
 
 void Parser::generateOutput(OutputType const outputType)
 {
 	VERBOSE_LOG(verbose, "Starting to generate parser output");
 
+	// Make sure that all references are valid, throw if not
 	validateReferences();
 
-	// Serializer serializer{};
-	// serializer.setOutputType(outputType);
-	// serializer.setOutputFile(outputFile);
-	// serializer.setTranslationTable(translationTable);
-	// serializer.begin();
+	// Initialize the serializer and pass the required dependencies for generating the output files
+	SerializerDependencies serializerDependencies{outputFile};
+	Serializer serializer{serializerDependencies};
+	serializer.setOutputType(outputType);
+	serializer.setTranslationTable(translationTable);
+
+	// Begin the document, write all references and end the document
+	serializer.beginDocument();
 	for (auto const &reference : references)
 	{
-		// serializer.writeReference(reference);
+		serializer.writeReference(reference);
 	}
-	// serialier.commit();
+	serializer.endDocument();
 }
 
 void Parser::validateReferences() const
@@ -83,8 +89,8 @@ void Parser::validateReferences() const
 	{
 		if (reference.isValid() == false)
 		{
-			UserError userError{"Reference " + reference.getCitationKey() + " is invalid!"};
-			throw userError;
+			InvalidReference invalidReference;
+			throw invalidReference;
 		}
 	}
 }
@@ -166,8 +172,8 @@ void Parser::composeTranslationTable()
 		vector<string> parts = splitString(line, '=');
 		if (parts.size() != 2)
 		{
-			UserError userError{"Error parsing config file: Invalid key value pair in line " + to_string(lineNumber)};
-			throw userError;
+			ConfigInvalidKeyValuePair configInvalidKeyValuePair;
+			throw configInvalidKeyValuePair;
 		}
 
 		processConfigLine(parts[0], parts[1], section);
@@ -193,8 +199,8 @@ ConfigSection Parser::getConfigSection(string const &value)
 		return ConfigSection::PDF;
 	}
 
-	UserError userError{"Error parsing config file: Invalid section found: \"" + value + "\""};
-	throw userError;
+	ConfigInvalidSection configInvalidSection;
+	throw configInvalidSection;
 }
 
 void Parser::processConfigLine(string const &key, string const &value, ConfigSection const section)
@@ -206,13 +212,11 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	}
 	catch (out_of_range const &exception)
 	{
-		UserError userError{"Error parsing config file: Invalid field type \"" + key + "\""};
-		throw userError;
+		ConfigInvalidFieldType configInvalidFieldType;
+		throw configInvalidFieldType;
 	}
 
-	switch (section)
-	{
-	case ConfigSection::Scalars:
+	if (section == ConfigSection::Scalars)
 	{
 		try
 		{
@@ -221,16 +225,31 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 		}
 		catch (out_of_range const &exception)
 		{
-			UserError userError{"Error parsing config file: Invalid scalar type \"" + value + "\""};
-			throw userError;
+			ConfigInvalidScalarType invalidScalarType;
+			throw invalidScalarType;
 		}
-
-		break;
+		return; // TODO: Implement goto
 	}
+
+	ScalarType scalarType{ScalarType::Date};
+	try
+	{
+		scalarType = translationTable->getScalarType(fieldType);
+	}
+	catch (out_of_range const &exception)
+	{
+		Scalar scalar{"Test test"};
+		ConfigScalarNotGiven configScalarNotGiven;
+		throw scalar;
+	}
+
+	switch (section)
+	{
 
 	case ConfigSection::XML:
 	{
-		unique_ptr<XMLRule> xmlRule = make_unique<XMLRule>(value);
+		ScalarType scalarType = translationTable->getScalarType(fieldType);
+		unique_ptr<XMLRule> xmlRule = make_unique<XMLRule>(fieldType, scalarType, value);
 		translationTable->addRule(OutputType::XML, fieldType, move(xmlRule));
 		break;
 	}
@@ -238,14 +257,15 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	{
 		try
 		{
+			ScalarType scalarType = translationTable->getScalarType(fieldType);
 			PDFType pdfType = TranslationTable::pdfTypeStrings.at(value);
-			unique_ptr<PDFRule> pdfRule = make_unique<PDFRule>(pdfType);
+			unique_ptr<PDFRule> pdfRule = make_unique<PDFRule>(fieldType, scalarType, pdfType);
 			translationTable->addRule(OutputType::PDF, fieldType, move(pdfRule));
 		}
 		catch (out_of_range const &exception)
 		{
-			UserError userError{"Error parsing config file: Invalid PDF type \"" + value + "\""};
-			throw userError;
+			ConfigInvalidPDFType configInvalidPDFType;
+			throw configInvalidPDFType;
 		}
 
 		break;
@@ -255,20 +275,22 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	{
 		try
 		{
+			ScalarType scalarType = translationTable->getScalarType(fieldType);
 			HTMLTag htmlTag = TranslationTable::htmlTagStrings.at(value);
-			unique_ptr<HTMLRule> htmlRule = make_unique<HTMLRule>(htmlTag);
+			unique_ptr<HTMLRule> htmlRule = make_unique<HTMLRule>(fieldType, scalarType, htmlTag);
 			translationTable->addRule(OutputType::HTML, fieldType, move(htmlRule));
 		}
 		catch (out_of_range const &exception)
 		{
-			UserError userError{"Error parsing config file: Invalid HTML tag \"" + value + "\""};
-			throw userError;
+			ConfigInvalidHTMLTag configInvalidHTMLTag;
+			throw configInvalidHTMLTag;
 		}
 		break;
 	}
 
 	default:
-		throw new std::exception{};
+		ConfigInvalidConfigSection configInvalidConfigSection;
+		throw configInvalidConfigSection;
 	}
 }
 //PRIVATE FUNCTIONS
@@ -300,7 +322,10 @@ void Parser::comment()
 	while (true)
 	{
 		if (this->pos == this->input.length())
-			throw UserError("Runaway comment");
+		{
+			ParserRunawayComment prc;
+			throw prc;
+		}
 
 		if (curr() != '}')
 			++this->pos;
@@ -328,7 +353,8 @@ void Parser::entry(std::string dir)
 	}
 	catch (out_of_range const &exception)
 	{
-		throw UserError("Unknown Entrytype: " + dir.substr(1));
+		ParserUnknownEntryType parserUnknownEntryType;
+		throw parserUnknownEntryType;
 	}
 
 	match(",");
