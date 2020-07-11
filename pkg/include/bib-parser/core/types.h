@@ -20,12 +20,14 @@ namespace TUCSE
 	{
 		Number,
 		Date,
-		String
+		String,
+		Range
 	};
 
 	enum class HTMLTag : size_t
 	{
 		Paragraph,
+		Span,
 		Heading1,
 		Heading2,
 		Heading3,

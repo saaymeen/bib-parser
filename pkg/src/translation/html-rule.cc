@@ -3,6 +3,7 @@
 using TUCSE::HTMLRule;
 using TUCSE::SerializerDependencies;
 
-void HTMLRule::apply(SerializerDependencies const &dependencies) const noexcept
+void HTMLRule::apply(SerializerDependencies const &dependencies, std::string const &value) const noexcept
 {
+	*(dependencies.htmlOutputFile.get()) << "\n\t\t\t\t<div>" + value + "</div>";
 }

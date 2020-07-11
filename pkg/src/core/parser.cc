@@ -89,8 +89,7 @@ void Parser::validateReferences() const
 	{
 		if (reference.isValid() == false)
 		{
-			InvalidReference invalidReference;
-			throw invalidReference;
+			throw std::runtime_error{"Invalid reference: " + reference.getCitationKey()};
 		}
 	}
 }
@@ -238,9 +237,7 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	}
 	catch (out_of_range const &exception)
 	{
-		Scalar scalar{"Test test"};
-		ConfigScalarNotGiven configScalarNotGiven;
-		throw scalar;
+		throw std::runtime_error{"Scalar value for \"" + key + "\" not specified"};
 	}
 
 	switch (section)
@@ -248,7 +245,14 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 
 	case ConfigSection::XML:
 	{
-		ScalarType scalarType = translationTable->getScalarType(fieldType);
+		try
+		{
+			ScalarType scalarType = translationTable->getScalarType(fieldType);
+		}
+		catch (out_of_range const &exception)
+		{
+			throw std::runtime_error{"Scalar type for xml value not found"};
+		}
 		unique_ptr<XMLRule> xmlRule = make_unique<XMLRule>(fieldType, scalarType, value);
 		translationTable->addRule(OutputType::XML, fieldType, move(xmlRule));
 		break;

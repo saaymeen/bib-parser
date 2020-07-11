@@ -10,7 +10,7 @@ namespace TUCSE
 	class TranslationTableRule
 	{
 	public:
-		virtual void apply(SerializerDependencies const &) const noexcept = 0;
+		virtual void apply(SerializerDependencies const &, std::string const &value) const noexcept = 0;
 
 		TranslationTableRule(FieldType const fieldType, ScalarType const scalarType)
 			: fieldType{fieldType}, scalarType{scalarType}
