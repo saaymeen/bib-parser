@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 
+#include "bib-parser/core/magic_enum.hpp"
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/core/sorter.h"
 #include "bib-parser/core/util.h"
@@ -16,6 +17,7 @@ using Criteria = TUCSE::Sorter::Criteria;
 using namespace std;
 using TUCSE::stringToLowercase;
 using FieldType = TUCSE::FieldType;
+using TUCSE::EntryType;
 
 void Sorter::setCriteria(Criteria const criteria) noexcept
 {
@@ -50,10 +52,10 @@ void Sorter::apply(std::vector<Reference> &references) const
 			return compareYearAsc(left, right);
 		case Criteria::YearDesc:
 			return compareYearDesc(left, right);
-	/*	case Criteria::EntryTypeAsc: 
+		case Criteria::EntryTypeAsc: 
 			return compareEntryTypeAsc(left, right);
 		case Criteria::EntryTypeDesc:
-			return compareEntryTypeDesc(left, right);*/
+			return compareEntryTypeDesc(left, right);
 		case Criteria::CitationKeyAsc:
 			return compareCitationKeyAsc(left, right);
 		case Criteria::CitationKeyDesc:
@@ -222,15 +224,18 @@ bool Sorter::compareCitationKeyDesc(Reference const &left, Reference const &righ
 	return leftValue > rightValue;
 }
 
-//TO-DO: convert entryType to string
-/*bool Sorter::compareEntryTypeAsc(Reference const& left, Reference const& right) noexcept
+bool Sorter::compareEntryTypeAsc(Reference const& left, Reference const& right) noexcept
 {
+	EntryType leftEntryType;
+	EntryType rightEntryType;
+
 	string leftValue;
 	string rightValue;
 
 	try
 	{
-		leftValue = left.getEntryType();
+		leftEntryType = left.getEntryType();
+		leftValue = magic_enum::enum_name(leftEntryType);
 	}
 	catch (std::out_of_range const& exception)
 	{
@@ -239,24 +244,32 @@ bool Sorter::compareCitationKeyDesc(Reference const &left, Reference const &righ
 
 	try
 	{
-		rightValue = right.getEntryType();
+		rightEntryType = right.getEntryType();
+		rightValue = magic_enum::enum_name(rightEntryType);
 	}
 	catch (std::out_of_range const& exception)
 	{
 		return true;
 	}
+
+	TUCSE::stringToLowercase(leftValue);
+	TUCSE::stringToLowercase(rightValue);
 
 	return leftValue < rightValue;
 }
 
 bool Sorter::compareEntryTypeDesc(Reference const& left, Reference const& right) noexcept
 {
+	EntryType leftEntryType;
+	EntryType rightEntryType;
+
 	string leftValue;
 	string rightValue;
 
 	try
 	{
-		leftValue = left.getEntryType();
+		leftEntryType = left.getEntryType();
+		leftValue = magic_enum::enum_name(leftEntryType);
 	}
 	catch (std::out_of_range const& exception)
 	{
@@ -265,16 +278,20 @@ bool Sorter::compareEntryTypeDesc(Reference const& left, Reference const& right)
 
 	try
 	{
-		rightValue = right.getEntryType();
+		rightEntryType = right.getEntryType();
+		rightValue = magic_enum::enum_name(rightEntryType);
 	}
 	catch (std::out_of_range const& exception)
 	{
 		return true;
 	}
 
+	TUCSE::stringToLowercase(leftValue);
+	TUCSE::stringToLowercase(rightValue);
+
 	// hier wird der eigentliche vergleich ausgeführt, d.h. rechts und links haben jeweils einen autor
 	return leftValue > rightValue;
-}*/
+}
 
 
 std::map<std::string, Sorter::Criteria> const TUCSE::Sorter::argumentMap{

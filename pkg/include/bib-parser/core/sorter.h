@@ -37,8 +37,8 @@ namespace TUCSE
 		static bool compareAuthorAsc(Reference const &left, Reference const &right) noexcept;
 		static bool compareAuthorDesc(Reference const &left, Reference const &right) noexcept;
 
-		//static bool compareEntryTypeAsc(Reference const &left, Reference const &right) noexcept;
-		//static bool compareEntryTypeDesc(Reference const &left, Reference const &right) noexcept;
+		static bool compareEntryTypeAsc(Reference const &left, Reference const &right) noexcept;
+		static bool compareEntryTypeDesc(Reference const &left, Reference const &right) noexcept;
 
 		static bool compareYearAsc(Reference const &left, Reference const &right) noexcept;
 		static bool compareYearDesc(Reference const &left, Reference const &right) noexcept;

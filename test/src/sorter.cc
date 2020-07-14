@@ -20,6 +20,7 @@ SCENARIO("Sorting Reference objects with the Sorter class", "[Sorter]")
 		reference1.addField(FieldType::Address, "Straße der Nationen 12");
 		reference1.addField(FieldType::Year, "1999");
 
+
 		Reference reference2{"citation2", EntryType::InBook};
 		reference2.addField(FieldType::CrossReference, "@reference3");
 		reference2.addField(FieldType::Author, "Jules Verne");
@@ -29,11 +30,11 @@ SCENARIO("Sorting Reference objects with the Sorter class", "[Sorter]")
 		reference3.addField(FieldType::Author, "Räuber Hotzenplotz");
 		reference3.addField(FieldType::Year, "2070");
 
-		Reference reference4{"citation4", EntryType::Article};
+		Reference reference4{"citation4", EntryType::Book};
 		reference4.addField(FieldType::Author, "Lady Gaga");
 		reference4.addField(FieldType::Year, "1799");
 
-		Reference reference5{"citation5", EntryType::Article};
+		Reference reference5{"citation5", EntryType::Manual};
 		reference5.addField(FieldType::Author, "anna Mayer");
 		reference5.addField(FieldType::Year, "1699");
 		
@@ -102,7 +103,7 @@ SCENARIO("Sorting Reference objects with the Sorter class", "[Sorter]")
 				REQUIRE(references.at(3).getCitationKey() == "citation1");								
 				REQUIRE(references.at(4).getCitationKey() == "citation3");
 			}
-		}*/
+		}
 
 		WHEN("The vector is sorted by citationkey descending")
 		{
@@ -132,6 +133,36 @@ SCENARIO("Sorting Reference objects with the Sorter class", "[Sorter]")
 				REQUIRE(references.at(2).getCitationKey() == "citation2");
 				REQUIRE(references.at(3).getCitationKey() == "citation1");
 				REQUIRE(references.at(4).getCitationKey() == "citation3");
+			}
+		}*/
+
+		WHEN("The vector is sorted by entryType descending") {
+			Sorter sorter;
+			sorter.setCriteria(Criteria::EntryTypeDesc);
+			sorter.apply(references);
+
+			THEN("It's elements will be rearranged accordingly")
+			{
+				REQUIRE(references.at(0).getCitationKey() == "citation1");
+				REQUIRE(references.at(1).getCitationKey() == "citation4");
+				REQUIRE(references.at(2).getCitationKey() == "citation2");
+				REQUIRE(references.at(3).getCitationKey() == "citation5");
+				REQUIRE(references.at(4).getCitationKey() == "citation3");
+			}
+		}
+
+		WHEN("The vector is sorted by entryType ascending") {
+			Sorter sorter;
+			sorter.setCriteria(Criteria::EntryTypeAsc);
+			sorter.apply(references);
+
+			THEN("It's elements will be rearranged accordingly")
+			{
+				REQUIRE(references.at(0).getCitationKey() == "citation3");
+				REQUIRE(references.at(1).getCitationKey() == "citation4");
+				REQUIRE(references.at(2).getCitationKey() == "citation2");
+				REQUIRE(references.at(3).getCitationKey() == "citation1");
+				REQUIRE(references.at(4).getCitationKey() == "citation5");
 			}
 		}
 
