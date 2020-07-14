@@ -1,7 +1,7 @@
 #include <memory>
 #include <utility>
 
-#include "bib-parser/core/translation-table.h"
+#include "bib-parser/translation/translation-table.h"
 #include "bib-parser/core/types.h"
 
 using std::move;
@@ -20,11 +20,14 @@ using std::unordered_map;
 std::map<std::string, ScalarType> const TranslationTable::scalarTypeStrings{
 	{"date", ScalarType::Date},
 	{"number", ScalarType::Number},
-	{"string", ScalarType::String}};
+	{"string", ScalarType::String},
+	{"range", ScalarType::Range}};
 
 std::map<std::string, HTMLTag> const TranslationTable::htmlTagStrings{
 	{"p", HTMLTag::Paragraph},
-	{"h1", HTMLTag::Heading1}};
+	{"h1", HTMLTag::Heading1},
+	{"span", HTMLTag::Span},
+	{"h2", HTMLTag::Heading2}};
 
 std::map<std::string, PDFType> const TranslationTable::pdfTypeStrings{
 	{"text", PDFType::Text},

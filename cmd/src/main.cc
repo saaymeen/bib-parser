@@ -70,17 +70,13 @@ int runCheckApp(std::string const &inputFilePath, bool const verbose)
 	{
 		parser.parseInput();
 	}
-	catch (UserError const &userError)
+	catch (std::exception &e)
 	{
-		cout << userError.getMessage() << endl;
-		return ErrorParserException;
-	}
-	catch (...)
-	{
-		cout << "Caught unhandled exception, aborting..." << endl;
+		cout << e.what() << endl;
 		return ErrorParserException;
 	}
 
+	cout << "Input file is valid" << endl;
 	return ErrorNone;
 }
 
@@ -101,14 +97,9 @@ int runConvertApp(std::string const &inputFilePath, std::string const &outputFil
 
 		parser.generateOutput(outputType);
 	}
-	catch (UserError const &userError)
+	catch (std::exception &e)
 	{
-		cout << userError.getMessage() << endl;
-		return ErrorParserException;
-	}
-	catch (...)
-	{
-		cout << "Caught unhandled exception, aborting..." << endl;
+		cout << e.what() << endl;
 		return ErrorParserException;
 	}
 

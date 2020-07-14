@@ -1,6 +1,7 @@
 #ifndef TUCSE_BIB_PARSER_ENTRY_TYPE_H
 #define TUCSE_BIB_PARSER_ENTRY_TYPE_H
 
+#include <map>
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -30,10 +31,7 @@ namespace TUCSE
 	};
 
 	extern std::map<std::string, EntryType> const entryTypeStrings;
-
-	std::vector<FieldType> getOptionalFieldTypes(EntryType const entryType) noexcept;
-	std::vector<FieldType> getRequiredFieldTypes(EntryType const entryType) noexcept;
-	std::vector<FieldType> getIgnoredFieldTypes(EntryType const entryType) noexcept;
+	extern std::map<EntryType, std::string> const stringsForEntryTypes;
 
 } // namespace TUCSE
 
