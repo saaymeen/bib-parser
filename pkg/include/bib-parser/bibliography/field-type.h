@@ -1,7 +1,7 @@
 #ifndef TUCSE_BIB_PARSER_FIELD_TYPE_H
 #define TUCSE_BIB_PARSER_FIELD_TYPE_H
 
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <cstddef>
 
@@ -37,7 +37,8 @@ namespace TUCSE
 		NumberOf, // NOTE: Must always be the last value in the enum
 	};
 
-	extern std::map<std::string, FieldType> const fieldTypeStrings;
+	extern std::unordered_map<std::string, FieldType> const fieldTypeStrings;
+	extern std::unordered_map<FieldType, std::string> const stringsForFieldTypes;
 
 	class FieldTypeHash
 	{

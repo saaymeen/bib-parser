@@ -5,11 +5,11 @@
 #include <string>
 #include <stdexcept>
 
-#include "bib-parser/core/magic_enum.hpp"
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/core/sorter.h"
 #include "bib-parser/core/util.h"
 #include "bib-parser/bibliography/field-type.h"
+#include "bib-parser/core/error.h"
 
 using TUCSE::Reference;
 using TUCSE::Sorter;
@@ -35,7 +35,8 @@ void Sorter::apply(std::vector<Reference> &references) const
 	{
 		if (!reference.isValid())
 		{
-			throw new std::exception{};
+			SorterRefNotValid srn;
+			throw srn;
 		}
 	}
 
@@ -52,14 +53,10 @@ void Sorter::apply(std::vector<Reference> &references) const
 			return compareYearAsc(left, right);
 		case Criteria::YearDesc:
 			return compareYearDesc(left, right);
-		case Criteria::EntryTypeAsc: 
+		case Criteria::EntryTypeAsc:
 			return compareEntryTypeAsc(left, right);
 		case Criteria::EntryTypeDesc:
 			return compareEntryTypeDesc(left, right);
-		case Criteria::CitationKeyAsc:
-			return compareCitationKeyAsc(left, right);
-		case Criteria::CitationKeyDesc:
-			return compareCitationKeyDesc(left, right);
 		}
 		return false;
 	});
@@ -147,7 +144,7 @@ bool Sorter::compareAuthorDesc(Reference const &left, Reference const &right) no
 	return leftValue > rightValue;
 }
 
-bool Sorter::compareYearAsc(Reference const& left, Reference const& right) noexcept
+bool Sorter::compareYearAsc(Reference const &left, Reference const &right) noexcept
 {
 	string leftValue;
 	string rightValue;
@@ -156,7 +153,7 @@ bool Sorter::compareYearAsc(Reference const& left, Reference const& right) noexc
 	{
 		leftValue = left.getFieldValue(FieldType::Year);
 	}
-	catch (std::out_of_range const& exception)
+	catch (std::out_of_range const &exception)
 	{
 		return false;
 	}
@@ -165,7 +162,7 @@ bool Sorter::compareYearAsc(Reference const& left, Reference const& right) noexc
 	{
 		rightValue = right.getFieldValue(FieldType::Year);
 	}
-	catch (std::out_of_range const& exception)
+	catch (std::out_of_range const &exception)
 	{
 		return true;
 	}
@@ -199,43 +196,19 @@ bool Sorter::compareYearDesc(Reference const &left, Reference const &right) noex
 	return leftValue > rightValue;
 }
 
-//TO-DO: test
-bool Sorter::compareCitationKeyAsc(Reference const& left, Reference const& right) noexcept
-{
-	string leftValue;
-	string rightValue;
-	
-	leftValue = left.getCitationKey();
-	rightValue = right.getCitationKey();
 
-
-	return leftValue < rightValue;
-}
-
-//TO-DO: test
-bool Sorter::compareCitationKeyDesc(Reference const &left, Reference const &right) noexcept
-{
-	string leftValue;
-	string rightValue;
-
-	leftValue = left.getCitationKey();
-	rightValue = right.getCitationKey();
-
-	return leftValue > rightValue;
-}
-
+//zur Sortierung bei doppelten EntryTypes: die Referenz, die zu erst im Referenz-Vektor steht, steht auch in der sortierten Liste zuerst
+// a = "a"
+// b = "a"
+// a<b => 0; a<=b => 1; a>b => 0; a>=b => 1
 bool Sorter::compareEntryTypeAsc(Reference const& left, Reference const& right) noexcept
 {
-	EntryType leftEntryType;
-	EntryType rightEntryType;
-
-	string leftValue;
-	string rightValue;
+	std::string leftEntryTypeString{};
+	std::string rightEntryTypeString{};
 
 	try
 	{
-		leftEntryType = left.getEntryType();
-		leftValue = magic_enum::enum_name(leftEntryType);
+		leftEntryTypeString = stringsForEntryTypes.at(left.getEntryType()); // throws out_of_range???
 	}
 	catch (std::out_of_range const& exception)
 	{
@@ -244,32 +217,27 @@ bool Sorter::compareEntryTypeAsc(Reference const& left, Reference const& right) 
 
 	try
 	{
-		rightEntryType = right.getEntryType();
-		rightValue = magic_enum::enum_name(rightEntryType);
+		rightEntryTypeString = stringsForEntryTypes.at(right.getEntryType()); // throws out_of_range???
 	}
 	catch (std::out_of_range const& exception)
 	{
 		return true;
 	}
 
-	TUCSE::stringToLowercase(leftValue);
-	TUCSE::stringToLowercase(rightValue);
+	TUCSE::stringToLowercase(leftEntryTypeString);
+	TUCSE::stringToLowercase(rightEntryTypeString);
 
-	return leftValue < rightValue;
+	return leftEntryTypeString < rightEntryTypeString;
 }
 
 bool Sorter::compareEntryTypeDesc(Reference const& left, Reference const& right) noexcept
 {
-	EntryType leftEntryType;
-	EntryType rightEntryType;
-
-	string leftValue;
-	string rightValue;
+	std::string leftEntryTypeString{};
+	std::string rightEntryTypeString{};
 
 	try
 	{
-		leftEntryType = left.getEntryType();
-		leftValue = magic_enum::enum_name(leftEntryType);
+		leftEntryTypeString = stringsForEntryTypes.at(left.getEntryType()); // throws out_of_range???
 	}
 	catch (std::out_of_range const& exception)
 	{
@@ -278,21 +246,19 @@ bool Sorter::compareEntryTypeDesc(Reference const& left, Reference const& right)
 
 	try
 	{
-		rightEntryType = right.getEntryType();
-		rightValue = magic_enum::enum_name(rightEntryType);
+		rightEntryTypeString = stringsForEntryTypes.at(right.getEntryType()); // throws out_of_range???
 	}
 	catch (std::out_of_range const& exception)
 	{
 		return true;
 	}
 
-	TUCSE::stringToLowercase(leftValue);
-	TUCSE::stringToLowercase(rightValue);
+	TUCSE::stringToLowercase(leftEntryTypeString);
+	TUCSE::stringToLowercase(rightEntryTypeString);
 
 	// hier wird der eigentliche vergleich ausgeführt, d.h. rechts und links haben jeweils einen autor
-	return leftValue > rightValue;
+	return leftEntryTypeString > rightEntryTypeString;
 }
-
 
 std::map<std::string, Sorter::Criteria> const TUCSE::Sorter::argumentMap{
 	{"author-asc", Criteria::AuthorAsc},

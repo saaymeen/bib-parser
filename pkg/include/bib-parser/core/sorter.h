@@ -43,11 +43,6 @@ namespace TUCSE
 		static bool compareYearAsc(Reference const &left, Reference const &right) noexcept;
 		static bool compareYearDesc(Reference const &left, Reference const &right) noexcept;
 
-		static bool compareCitationKeyAsc(Reference const &left, Reference const &right) noexcept;
-		static bool compareCitationKeyDesc(Reference const &left, Reference const &right) noexcept;
-
-
-
 	private:
 		Criteria criteria{Criteria::NoSort};
 	};

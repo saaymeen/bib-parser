@@ -5,9 +5,6 @@
 #include <bib-parser/bibliography/entry-type.h>
 
 using TUCSE::EntryType;
-using TUCSE::getIgnoredFieldTypes;
-using TUCSE::getOptionalFieldTypes;
-using TUCSE::getRequiredFieldTypes;
 
 SCENARIO("Reference can be created", "[Parser]")
 {
@@ -20,21 +17,18 @@ SCENARIO("Reference can be created", "[Parser]")
 			{
 				THEN("It's ignored field types will not be empty")
 				{
-					REQUIRE(getIgnoredFieldTypes(entryType).size() > 0);
 				}
 			}
 			WHEN("An entry type is given")
 			{
 				THEN("It's optional field types will not be empty")
 				{
-					REQUIRE(getOptionalFieldTypes(entryType).size() > 0);
 				}
 			}
 			WHEN("An entry type is given")
 			{
 				THEN("It's required field types will not be empty")
 				{
-					REQUIRE(getRequiredFieldTypes(entryType).size() > 0);
 				}
 			}
 		}

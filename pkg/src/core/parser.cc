@@ -9,19 +9,21 @@
 #include "bib-parser/core/parser.h"
 #include "core/log.h"
 #include "bib-parser/bibliography/field-type.h"
-#include "bib-parser/core/html-rule.h"
-#include "bib-parser/core/xml-rule.h"
-#include "bib-parser/core/pdf-rule.h"
+#include "bib-parser/translation/html-rule.h"
+#include "bib-parser/translation/xml-rule.h"
+#include "bib-parser/translation/pdf-rule.h"
 #include "bib-parser/core/types.h"
 #include "bib-parser/core/error.h"
+#include "bib-parser/core/serializer.h"
+#include "bib-parser/core/serializer-dependencies.h"
 
 using std::cout;
 using std::endl;
 using std::map;
 using std::string;
 using std::vector;
-using TUCSE::Parser;
 using TUCSE::EntryType;
+using TUCSE::Parser;
 using OutputType = TUCSE::OutputType;
 using Criteria = TUCSE::Sorter::Criteria;
 using TUCSE::splitString;
@@ -35,10 +37,10 @@ using std::unique_ptr;
 using PDFType = TUCSE::PDFType;
 using HTMLTag = TUCSE::HTMLTag;
 using std::make_shared;
+using std::ofstream;
 using std::out_of_range;
 using std::shared_ptr;
 using std::to_string;
-using TUCSE::UserError;
 
 map<string, OutputType> const Parser::outputTypeMap{
 	{"pdf", OutputType::PDF},
@@ -46,7 +48,7 @@ map<string, OutputType> const Parser::outputTypeMap{
 	{"html", OutputType::HTML}};
 
 Parser::Parser(string const &inputFilePath, string const configFilePath, string const outputFilePath)
-	: inputFile{inputFilePath}, configFile{configFilePath}, outputFile{outputFilePath}, translationTable{make_shared<TranslationTable>()}
+	: inputFile{inputFilePath}, configFile{configFilePath}, outputFile{make_shared<ofstream>(outputFilePath)}, translationTable{make_shared<TranslationTable>()}
 {
 }
 
@@ -56,25 +58,29 @@ Parser::~Parser()
 
 	inputFile.close();
 	configFile.close();
-	outputFile.close();
+	outputFile->close();
 }
 
 void Parser::generateOutput(OutputType const outputType)
 {
 	VERBOSE_LOG(verbose, "Starting to generate parser output");
 
+	// Make sure that all references are valid, throw if not
 	validateReferences();
 
-	// Serializer serializer{};
-	// serializer.setOutputType(outputType);
-	// serializer.setOutputFile(outputFile);
-	// serializer.setTranslationTable(translationTable);
-	// serializer.begin();
+	// Initialize the serializer and pass the required dependencies for generating the output files
+	SerializerDependencies serializerDependencies{outputFile};
+	Serializer serializer{serializerDependencies};
+	serializer.setOutputType(outputType);
+	serializer.setTranslationTable(translationTable);
+
+	// Begin the document, write all references and end the document
+	serializer.beginDocument();
 	for (auto const &reference : references)
 	{
-		// serializer.writeReference(reference);
+		serializer.writeReference(reference);
 	}
-	// serialier.commit();
+	serializer.endDocument();
 }
 
 void Parser::validateReferences() const
@@ -83,8 +89,7 @@ void Parser::validateReferences() const
 	{
 		if (reference.isValid() == false)
 		{
-			UserError userError{"Reference " + reference.getCitationKey() + " is invalid!"};
-			throw userError;
+			throw std::runtime_error{"Invalid reference: " + reference.getCitationKey()};
 		}
 	}
 }
@@ -166,8 +171,8 @@ void Parser::composeTranslationTable()
 		vector<string> parts = splitString(line, '=');
 		if (parts.size() != 2)
 		{
-			UserError userError{"Error parsing config file: Invalid key value pair in line " + to_string(lineNumber)};
-			throw userError;
+			ConfigInvalidKeyValuePair configInvalidKeyValuePair;
+			throw configInvalidKeyValuePair;
 		}
 
 		processConfigLine(parts[0], parts[1], section);
@@ -193,8 +198,8 @@ ConfigSection Parser::getConfigSection(string const &value)
 		return ConfigSection::PDF;
 	}
 
-	UserError userError{"Error parsing config file: Invalid section found: \"" + value + "\""};
-	throw userError;
+	ConfigInvalidSection configInvalidSection;
+	throw configInvalidSection;
 }
 
 void Parser::processConfigLine(string const &key, string const &value, ConfigSection const section)
@@ -206,13 +211,11 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	}
 	catch (out_of_range const &exception)
 	{
-		UserError userError{"Error parsing config file: Invalid field type \"" + key + "\""};
-		throw userError;
+		ConfigInvalidFieldType configInvalidFieldType;
+		throw configInvalidFieldType;
 	}
 
-	switch (section)
-	{
-	case ConfigSection::Scalars:
+	if (section == ConfigSection::Scalars)
 	{
 		try
 		{
@@ -221,16 +224,36 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 		}
 		catch (out_of_range const &exception)
 		{
-			UserError userError{"Error parsing config file: Invalid scalar type \"" + value + "\""};
-			throw userError;
+			ConfigInvalidScalarType invalidScalarType;
+			throw invalidScalarType;
 		}
-
-		break;
+		return; // TODO: Implement goto
 	}
+
+	ScalarType scalarType{ScalarType::Date};
+	try
+	{
+		scalarType = translationTable->getScalarType(fieldType);
+	}
+	catch (out_of_range const &exception)
+	{
+		throw std::runtime_error{"Scalar value for \"" + key + "\" not specified"};
+	}
+
+	switch (section)
+	{
 
 	case ConfigSection::XML:
 	{
-		unique_ptr<XMLRule> xmlRule = make_unique<XMLRule>(value);
+		try
+		{
+			ScalarType scalarType = translationTable->getScalarType(fieldType);
+		}
+		catch (out_of_range const &exception)
+		{
+			throw std::runtime_error{"Scalar type for xml value not found"};
+		}
+		unique_ptr<XMLRule> xmlRule = make_unique<XMLRule>(fieldType, scalarType, value);
 		translationTable->addRule(OutputType::XML, fieldType, move(xmlRule));
 		break;
 	}
@@ -238,14 +261,15 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	{
 		try
 		{
+			ScalarType scalarType = translationTable->getScalarType(fieldType);
 			PDFType pdfType = TranslationTable::pdfTypeStrings.at(value);
-			unique_ptr<PDFRule> pdfRule = make_unique<PDFRule>(pdfType);
+			unique_ptr<PDFRule> pdfRule = make_unique<PDFRule>(fieldType, scalarType, pdfType);
 			translationTable->addRule(OutputType::PDF, fieldType, move(pdfRule));
 		}
 		catch (out_of_range const &exception)
 		{
-			UserError userError{"Error parsing config file: Invalid PDF type \"" + value + "\""};
-			throw userError;
+			ConfigInvalidPDFType configInvalidPDFType;
+			throw configInvalidPDFType;
 		}
 
 		break;
@@ -255,20 +279,22 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	{
 		try
 		{
+			ScalarType scalarType = translationTable->getScalarType(fieldType);
 			HTMLTag htmlTag = TranslationTable::htmlTagStrings.at(value);
-			unique_ptr<HTMLRule> htmlRule = make_unique<HTMLRule>(htmlTag);
+			unique_ptr<HTMLRule> htmlRule = make_unique<HTMLRule>(fieldType, scalarType, htmlTag);
 			translationTable->addRule(OutputType::HTML, fieldType, move(htmlRule));
 		}
 		catch (out_of_range const &exception)
 		{
-			UserError userError{"Error parsing config file: Invalid HTML tag \"" + value + "\""};
-			throw userError;
+			ConfigInvalidHTMLTag configInvalidHTMLTag;
+			throw configInvalidHTMLTag;
 		}
 		break;
 	}
 
 	default:
-		throw new std::exception{};
+		ConfigInvalidConfigSection configInvalidConfigSection;
+		throw configInvalidConfigSection;
 	}
 }
 //PRIVATE FUNCTIONS
@@ -300,7 +326,10 @@ void Parser::comment()
 	while (true)
 	{
 		if (this->pos == this->input.length())
-			throw UserError("Runaway comment");
+		{
+			ParserRunawayComment prc;
+			throw prc;
+		}
 
 		if (curr() != '}')
 			++this->pos;
@@ -320,15 +349,17 @@ void Parser::placeholder()
 ///handles "normal" entries
 void Parser::entry(std::string dir)
 {
-	std::string citeKey = key(true); 
-	EntryType entryType; 
-	try {
-		entryType = entryTypeStrings.at(dir.substr(1)); 
+	std::string citeKey = key(true);
+	EntryType entryType;
+	try
+	{
+		entryType = entryTypeStrings.at(dir.substr(1));
 	}
 	catch (out_of_range const &exception)
 	{
-		throw UserError("Unknown Entrytype: " + dir.substr(1)); 
-	}		
+		ParserUnknownEntryType parserUnknownEntryType;
+		throw parserUnknownEntryType;
+	}
 
 	match(",");
 	keyValueList(citeKey, entryType);
@@ -354,7 +385,7 @@ void Parser::match(std::string s_match)
 	if (this->input.substr(this->pos, s_match.length()) == s_match)
 		this->pos += s_match.length();
 	else
-		throw UserError("Token mismatch"); 
+		throw UserError("Token mismatch");
 	skipWhitespace();
 }
 
@@ -389,15 +420,16 @@ bool Parser::isWhitespace(char in)
 //shortcut for current char -> position in input string
 char Parser::curr()
 {
-	char c; 
-	try {
-		c = this->input.at(this->pos); 
+	char c;
+	try
+	{
+		c = this->input.at(this->pos);
 	}
 	catch (out_of_range const &exception)
-	{ 
-		c = 0; 
-	}	
-	return c; 
+	{
+		c = 0;
+	}
+	return c;
 }
 
 ///handle value withing braces
@@ -423,7 +455,7 @@ std::string Parser::valueBraces()
 		else if (curr() == '{')
 			++braceCount;
 		else if (this->pos == this->input.length() - 1)
-			throw UserError("Unterminated Value"); 
+			throw UserError("Unterminated Value");
 
 		++this->pos;
 	}
@@ -443,7 +475,7 @@ std::string Parser::valueQuotes()
 			return this->input.substr(start, end - start);
 		}
 		else if (this->pos == this->input.length() - 1)
-			throw UserError("Unterminated Value"); 
+			throw UserError("Unterminated Value");
 
 		++this->pos;
 	}
@@ -511,7 +543,7 @@ std::string Parser::singleValue()
 			return k;
 		//value is invalid or empty
 		else
-			throw UserError("Unexpected Value:  " + k); 
+			throw UserError("Unexpected Value:  " + k);
 	}
 }
 
@@ -533,7 +565,7 @@ std::pair<std::string, std::string> Parser::keyEqualsValue()
 		return std::pair<std::string, std::string>(k, v);
 	}
 	else
-		throw UserError("... = value expected, equals sign missing:"); 
+		throw UserError("... = value expected, equals sign missing:");
 }
 
 ///parses the fieldList of entries using keyEqualsValue()
@@ -542,17 +574,17 @@ void Parser::keyValueList(std::string key, EntryType entryType)
 	Reference ref = Reference(key, entryType);
 
 	auto kvPair = keyEqualsValue();
-	FieldType fieldType; 
+	FieldType fieldType;
 
 	try
 	{
-		fieldType = fieldTypeStrings.at(kvPair.first); 
+		fieldType = fieldTypeStrings.at(kvPair.first);
 		ref.addField(fieldType, kvPair.second);
 	}
 	catch (out_of_range const &exception)
-	{ // non-standard field types are valid, but will be ignored 
-	}		
-	
+	{ // non-standard field types are valid, but will be ignored
+	}
+
 	while (tryMatch(","))
 	{
 		match(",");
@@ -560,16 +592,16 @@ void Parser::keyValueList(std::string key, EntryType entryType)
 			break;
 		kvPair = keyEqualsValue();
 
-		try 
+		try
 		{
-			fieldType = fieldTypeStrings.at(kvPair.first); 
+			fieldType = fieldTypeStrings.at(kvPair.first);
 			std::unordered_map<FieldType, std::string> fields = ref.getFields();
 			if (fields.find(fieldType) == fields.end())
 				ref.addField(fieldType, kvPair.second);
 		}
 		catch (out_of_range const &exception)
-		{ // non-standard field types are valid, but will be ignored 
-		}		
+		{ // non-standard field types are valid, but will be ignored
+		}
 	}
 
 	//only add new reference, if the key isn't being used already
@@ -605,12 +637,12 @@ bool Parser::stringIsNumber(std::string s)
 ///checks whether the used chars are valid for bibtex-keys
 bool Parser::keyCharMatch(char c)
 {
-	if(isalnum(c))
-		return true; 
+	if (isalnum(c))
+		return true;
 
-	std::string disallowedChars = "\"#'(),={}%~\\"; 
-	auto result = disallowedChars.find_first_of(c); 
-	return result == string::npos; 
+	std::string disallowedChars = "\"#'(),={}%~\\";
+	auto result = disallowedChars.find_first_of(c);
+	return result == string::npos;
 }
 
 ///uses the tolower()-function on every char of the string
@@ -622,9 +654,10 @@ std::string Parser::stringToLower(std::string input)
 	return temp;
 }
 
-std::string Parser::trim(std::string input) {
+std::string Parser::trim(std::string input)
+{
 	const std::string whitespace = " \t\v\r\n";
-	size_t start = input.find_first_not_of(whitespace); 
-	size_t end = input.find_last_not_of(whitespace);   
+	size_t start = input.find_first_not_of(whitespace);
+	size_t end = input.find_last_not_of(whitespace);
 	return start == end ? std::string() : input.substr(start, end - start + 1);
 }
