@@ -26,6 +26,9 @@ namespace
 {
 	char const *const HTMLBegin = "<!doctype html>\n<html lang=\"en\">\n\t<head>\n\t\t<meta charset=\"utf-8\" />\n\n\t\t<title>BIB Entries</title>\n\t\t<meta name=\"description\" content=\"Parsed with BIB Parser\" />\n\t\t<meta name=\"author\" content=\"Group 2\" />\n\t</head>\n\n\t<body>\n\t\t<ul class=\"references\">";
 	char const *const HTMLEnd = "\n\t\t</ul>\n\t</body>\n</html>";
+
+	char const *const XMLBegin = "XMLBEGIN";
+	char const *const XMLEnd = "XMLEND";
 } // namespace
 
 Serializer::Serializer(SerializerDependencies const dependencies)
@@ -39,6 +42,14 @@ void Serializer::beginDocument()
 	{
 	case OutputType::HTML:
 		beginHTMLDocument();
+		break;
+
+	case OutputType::XML:
+		beginXMLDocument();
+		break;
+
+	case OutputType::PDF:
+		beginPDFDocument();
 		break;
 
 	default:
@@ -57,6 +68,14 @@ void Serializer::writeReference(Reference const &reference)
 		writeHTMLReference(reference);
 		break;
 
+	case OutputType::XML:
+		writeXMLReference(reference);
+		break;
+
+	case OutputType::PDF:
+		writePDFReference(reference);
+		break;
+
 	default:
 		SerializerUnknownOutputType suot;
 		throw suot;
@@ -71,6 +90,14 @@ void Serializer::endDocument()
 		endHTMLDocument();
 		break;
 
+	case OutputType::XML:
+		endXMLDocument();
+		break;
+
+	case OutputType::PDF:
+		endPDFDocument();
+		break;
+
 	default:
 		SerializerEndDocument sed;
 		throw sed;
@@ -79,7 +106,16 @@ void Serializer::endDocument()
 
 void Serializer::beginHTMLDocument()
 {
-	*(dependencies.htmlOutputFile.get()) << HTMLBegin;
+	*(dependencies.outputFile.get()) << HTMLBegin;
+}
+
+void Serializer::beginXMLDocument()
+{
+	*(dependencies.outputFile.get()) << XMLBegin;
+}
+
+void Serializer::beginPDFDocument()
+{
 }
 
 void Serializer::writeHTMLReference(Reference const &reference)
@@ -91,7 +127,7 @@ void Serializer::writeHTMLReference(Reference const &reference)
 	// TODO: Wrap in try catch
 	// TODO: What to do when reference is opened, but rules are not found...?
 	// -> Buffer the file output, and write only if no exception is found...?
-	*(dependencies.htmlOutputFile.get()) << "\n\t\t\t<li class=\"reference " + stringsForEntryTypes.at(entryType) + " id=\"" + reference.getCitationKey() + "\">";
+	*(dependencies.outputFile.get()) << "\n\t\t\t<li class=\"reference " + stringsForEntryTypes.at(entryType) + " id=\"" + reference.getCitationKey() + "\">";
 
 	unordered_map<FieldType, string> referenceFields = reference.getFields();
 	for (auto const &referenceField : referenceFields)
@@ -110,12 +146,56 @@ void Serializer::writeHTMLReference(Reference const &reference)
 			throw std::runtime_error{"No translation rule found for field: " + fieldTypeString};
 		}
 	}
-	*(dependencies.htmlOutputFile.get()) << "\n\t\t\t</li>";
+	*(dependencies.outputFile.get()) << "\n\t\t\t</li>";
+}
+
+void Serializer::writeXMLReference(Reference const &reference)
+{
+	assert(translationTable);
+
+	EntryType entryType = reference.getEntryType();
+
+	// TODO: Wrap in try catch
+	// TODO: What to do when reference is opened, but rules are not found...?
+	// -> Buffer the file output, and write only if no exception is found...?
+	*(dependencies.outputFile.get()) << "\n\t\t\t<reference entry-type=\"reference " + stringsForEntryTypes.at(entryType) + " citation-key=\"" + reference.getCitationKey() + "\">";
+
+	unordered_map<FieldType, string> referenceFields = reference.getFields();
+	for (auto const &referenceField : referenceFields)
+	{
+		std::string fieldTypeString{"unknown"};
+		try
+		{
+			fieldTypeString = stringsForFieldTypes.at(referenceField.first);
+			auto rule = translationTable->getRule(OutputType::XML, referenceField.first);
+
+			// Rule found
+			rule->apply(dependencies, referenceField.second);
+		}
+		catch (out_of_range const &exception)
+		{
+			throw std::runtime_error{"No translation rule found for field: " + fieldTypeString};
+		}
+	}
+	*(dependencies.outputFile.get()) << "\n\t\t\t</reference>";
+}
+
+void Serializer::writePDFReference(Reference const &reference)
+{
 }
 
 void Serializer::endHTMLDocument()
 {
-	*(dependencies.htmlOutputFile.get()) << HTMLEnd;
+	*(dependencies.outputFile.get()) << HTMLEnd;
+}
+
+void Serializer::endXMLDocument()
+{
+	*(dependencies.outputFile.get()) << XMLEnd;
+}
+
+void Serializer::endPDFDocument()
+{
 }
 
 void Serializer::setOutputType(OutputType const outputType) noexcept

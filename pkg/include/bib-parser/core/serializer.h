@@ -31,8 +31,16 @@ namespace TUCSE
 
 	private:
 		void beginHTMLDocument();
+		void beginXMLDocument();
+		void beginPDFDocument();
+
 		void writeHTMLReference(Reference const &reference);
+		void writeXMLReference(Reference const &reference);
+		void writePDFReference(Reference const &reference);
+
 		void endHTMLDocument();
+		void endXMLDocument();
+		void endPDFDocument();
 
 	private:
 		std::shared_ptr<TranslationTable> translationTable{nullptr};

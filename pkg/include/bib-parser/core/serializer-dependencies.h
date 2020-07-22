@@ -9,12 +9,12 @@ namespace TUCSE
 	class SerializerDependencies
 	{
 	public:
-		SerializerDependencies(std::shared_ptr<std::ofstream> htmlOutputFile)
-			: htmlOutputFile{htmlOutputFile}
+		SerializerDependencies(std::shared_ptr<std::ofstream> outputFile)
+			: outputFile{outputFile}
 		{
 		}
 
-		std::shared_ptr<std::ofstream> htmlOutputFile;
+		std::shared_ptr<std::ofstream> outputFile;
 	};
 } // namespace TUCSE
 
