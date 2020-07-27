@@ -1,3 +1,4 @@
+/* OBSOLETE
 #ifndef TUCSE_BIB_PARSER_LOG_H
 #define TUCSE_BIB_PARSER_LOG_H
 
@@ -73,3 +74,4 @@ namespace
 	BIB_PARSER_PRINT(BIB_PARSER_LOG_FORMAT message NEWLINE, LOG_ARGS("BIB Parser"), ##__VA_ARGS__)
 
 #endif // TUCSE_BIB_PARSER_LOG_H
+*/

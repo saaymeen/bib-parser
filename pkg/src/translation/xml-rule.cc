@@ -5,5 +5,5 @@ using TUCSE::XMLRule;
 
 void XMLRule::apply(SerializerDependencies &dependencies, std::string const &value) const noexcept
 {
-	*(dependencies.outputFile.get()) << value + " = = " + tag + "\n";
+	*(dependencies.outputFile.get()) << "\n\t\t<" + tag + ">" + value + "</" + tag + ">";
 }

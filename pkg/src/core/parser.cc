@@ -1,46 +1,47 @@
-#include <map>
-#include <iostream>
-#include <vector>
-#include <memory>
 #include <exception>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <vector>
 
-#include "bib-parser/core/util.h"
-#include "bib-parser/core/sorter.h"
-#include "bib-parser/core/parser.h"
-#include "core/log.h"
 #include "bib-parser/bibliography/field-type.h"
-#include "bib-parser/translation/html-rule.h"
-#include "bib-parser/translation/xml-rule.h"
-#include "bib-parser/translation/pdf-rule.h"
-#include "bib-parser/core/types.h"
-#include "bib-parser/core/error.h"
+#include "bib-parser/core/parser.h"
 #include "bib-parser/core/serializer.h"
 #include "bib-parser/core/serializer-dependencies.h"
+#include "bib-parser/core/sorter.h"
+#include "bib-parser/core/types.h"
+#include "bib-parser/core/util.h"
+#include "bib-parser/translation/html-rule.h"
+#include "bib-parser/translation/pdf-rule.h"
+#include "bib-parser/translation/xml-rule.h"
 
 using std::cout;
 using std::endl;
+using std::logic_error;
+using std::make_shared;
+using std::make_unique;
 using std::map;
+using std::move;
+using std::ofstream;
+using std::out_of_range;
+using std::runtime_error;
+using std::shared_ptr;
 using std::string;
+using std::to_string;
+using std::unique_ptr;
 using std::vector;
+
 using TUCSE::EntryType;
 using TUCSE::Parser;
-using OutputType = TUCSE::OutputType;
-using Criteria = TUCSE::Sorter::Criteria;
 using TUCSE::splitString;
 using TUCSE::stringEndsWith;
 using TUCSE::stringStartsWith;
+using OutputType = TUCSE::OutputType;
 using ConfigSection = TUCSE::ConfigSection;
+using Criteria = TUCSE::Sorter::Criteria;
 using ScalarType = TUCSE::ScalarType;
-using std::make_unique;
-using std::move;
-using std::unique_ptr;
 using PDFType = TUCSE::PDFType;
 using HTMLTag = TUCSE::HTMLTag;
-using std::make_shared;
-using std::ofstream;
-using std::out_of_range;
-using std::shared_ptr;
-using std::to_string;
 
 map<string, OutputType> const Parser::outputTypeMap{
 	{"pdf", OutputType::PDF},
@@ -54,8 +55,6 @@ Parser::Parser(string const &inputFilePath, string const configFilePath, string 
 
 Parser::~Parser()
 {
-	VERBOSE_LOG(verbose, "Destructing Parser object, closing all related files");
-
 	inputFile.close();
 	configFile.close();
 	outputFile->close();
@@ -63,8 +62,6 @@ Parser::~Parser()
 
 void Parser::generateOutput(OutputType const outputType)
 {
-	VERBOSE_LOG(verbose, "Starting to generate parser output");
-
 	// Make sure that all references are valid, throw if not
 	validateReferences();
 
@@ -89,21 +86,18 @@ void Parser::validateReferences() const
 	{
 		if (reference.isValid() == false)
 		{
-			throw std::runtime_error{"Invalid reference: " + reference.getCitationKey()};
+			throw runtime_error{"Invalid reference: @" + reference.getCitationKey()};
 		}
 	}
 }
 
 void Parser::parseConfig()
 {
-	VERBOSE_LOG(verbose, "Starting to parse configuration file");
 	composeTranslationTable();
 }
 
 void Parser::parseInput()
 {
-	VERBOSE_LOG(verbose, "Starting to parse input");
-
 	this->input = readFileString();
 	this->pos = 0;
 
@@ -126,7 +120,9 @@ void Parser::parseInput()
 
 void Parser::sort(Criteria const sortCriteria) noexcept
 {
-	VERBOSE_LOG(verbose, "Starting to sort references");
+	Sorter sorter;
+	sorter.setCriteria(sortCriteria);
+	sorter.apply(references);
 }
 
 void Parser::setVerbose(bool const verbose) noexcept
@@ -171,8 +167,7 @@ void Parser::composeTranslationTable()
 		vector<string> parts = splitString(line, '=');
 		if (parts.size() != 2)
 		{
-			ConfigInvalidKeyValuePair configInvalidKeyValuePair;
-			throw configInvalidKeyValuePair;
+			throw runtime_error{"Found invalid key value pair in config file: [" + to_string(lineNumber) + "] " + line};
 		}
 
 		processConfigLine(parts[0], parts[1], section);
@@ -198,8 +193,7 @@ ConfigSection Parser::getConfigSection(string const &value)
 		return ConfigSection::PDF;
 	}
 
-	ConfigInvalidSection configInvalidSection;
-	throw configInvalidSection;
+	throw runtime_error{"Invalid config section in config file: " + value};
 }
 
 void Parser::processConfigLine(string const &key, string const &value, ConfigSection const section)
@@ -211,8 +205,7 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	}
 	catch (out_of_range const &exception)
 	{
-		ConfigInvalidFieldType configInvalidFieldType;
-		throw configInvalidFieldType;
+		throw runtime_error{"Unknown field type found in config file: " + key};
 	}
 
 	if (section == ConfigSection::Scalars)
@@ -224,8 +217,7 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 		}
 		catch (out_of_range const &exception)
 		{
-			ConfigInvalidScalarType invalidScalarType;
-			throw invalidScalarType;
+			throw runtime_error{"Unknown scalar type found in config file: " + value};
 		}
 		return; // TODO: Implement goto
 	}
@@ -237,7 +229,7 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 	}
 	catch (out_of_range const &exception)
 	{
-		throw std::runtime_error{"Scalar value for \"" + key + "\" not specified"};
+		throw runtime_error{"Scalar value for \"" + key + "\" not specified"};
 	}
 
 	switch (section)
@@ -251,7 +243,7 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 		}
 		catch (out_of_range const &exception)
 		{
-			throw std::runtime_error{"Scalar type for xml value not found"};
+			throw runtime_error{"Scalar type for xml value not found"};
 		}
 		unique_ptr<XMLRule> xmlRule = make_unique<XMLRule>(fieldType, scalarType, value);
 		translationTable->addRule(OutputType::XML, fieldType, move(xmlRule));
@@ -264,13 +256,11 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 			ScalarType scalarType = translationTable->getScalarType(fieldType);
 			PDFType pdfType = TranslationTable::pdfTypeStrings.at(value);
 			unique_ptr<PDFRule> pdfRule = make_unique<PDFRule>(fieldType, scalarType, pdfType);
-			std::cout << "PDF Rule found\n";
 			translationTable->addRule(OutputType::PDF, fieldType, move(pdfRule));
 		}
 		catch (out_of_range const &exception)
 		{
-			ConfigInvalidPDFType configInvalidPDFType;
-			throw configInvalidPDFType;
+			throw runtime_error{"Unknown pdf type found in config file: " + value};
 		}
 
 		break;
@@ -287,15 +277,13 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 		}
 		catch (out_of_range const &exception)
 		{
-			ConfigInvalidHTMLTag configInvalidHTMLTag;
-			throw configInvalidHTMLTag;
+			throw runtime_error{"Unknown HTML tag found in config file: " + value};
 		}
 		break;
 	}
 
 	default:
-		ConfigInvalidConfigSection configInvalidConfigSection;
-		throw configInvalidConfigSection;
+		throw logic_error{"Unknown confif section found when processing config file line"};
 	}
 }
 //PRIVATE FUNCTIONS
@@ -328,8 +316,7 @@ void Parser::comment()
 	{
 		if (this->pos == this->input.length())
 		{
-			ParserRunawayComment prc;
-			throw prc;
+			throw runtime_error{"Parser runaway comment"};
 		}
 
 		if (curr() != '}')
@@ -358,8 +345,7 @@ void Parser::entry(std::string dir)
 	}
 	catch (out_of_range const &exception)
 	{
-		ParserUnknownEntryType parserUnknownEntryType;
-		throw parserUnknownEntryType;
+		throw runtime_error{"Parser unknown entry type"};
 	}
 
 	match(",");
@@ -386,7 +372,7 @@ void Parser::match(std::string s_match)
 	if (this->input.substr(this->pos, s_match.length()) == s_match)
 		this->pos += s_match.length();
 	else
-		throw UserError("Token mismatch");
+		throw runtime_error{"Token mismatch"};
 	skipWhitespace();
 }
 
@@ -456,7 +442,7 @@ std::string Parser::valueBraces()
 		else if (curr() == '{')
 			++braceCount;
 		else if (this->pos == this->input.length() - 1)
-			throw UserError("Unterminated Value");
+			throw runtime_error{"Undetermined value"};
 
 		++this->pos;
 	}
@@ -476,7 +462,7 @@ std::string Parser::valueQuotes()
 			return parseFieldValue(this->input.substr(start, end - start));
 		}
 		else if (this->pos == this->input.length() - 1)
-			throw UserError("Unterminated Value");
+			throw runtime_error{"Unterminated Value"};
 
 		++this->pos;
 	}
@@ -490,7 +476,7 @@ std::string Parser::key(bool caseSensitive)
 	while (true)
 	{
 		if (this->pos == this->input.length())
-			throw UserError("Runaway Key"); //no structure char found -> key wasn't terminated
+			throw runtime_error{"Runaway key"}; //no structure char found -> key wasn't terminated
 
 		if (keyCharMatch(curr()))
 			//non-structure char -> move "cursor"
@@ -538,7 +524,7 @@ std::string Parser::singleValue()
 			return k;
 		//value is invalid or empty
 		else
-			throw UserError("Unexpected Value:  " + k);
+			throw runtime_error{"Unexpected value: " + k};
 	}
 }
 
@@ -560,7 +546,7 @@ std::pair<std::string, std::string> Parser::keyEqualsValue()
 		return std::pair<std::string, std::string>(k, v);
 	}
 	else
-		throw UserError("... = value expected, equals sign missing:");
+		throw runtime_error{"... = value expected, equals sign missing:"};
 }
 
 ///parses the fieldList of entries using keyEqualsValue()
@@ -653,7 +639,6 @@ std::string Parser::trim(std::string input)
 
 std::string Parser::parseFieldValue(std::string value)
 {
-	//TODO implement
-
+	// TODO implement
 	return value.at(0) == '{' && value.at(value.length() - 1) == '}' ? value.substr(1, value.length() - 2) : value;
 }

@@ -18,9 +18,6 @@ namespace TUCSE
 	class Serializer
 	{
 	public:
-		// TODO: Remove, obsolete
-		bool createHTML(std::vector<Reference> &references, std::string htmlName);
-
 		// Serializer constructs a TUCSE::Serializer object with the given TUCSE::SerializerDependencies given in dependencies.
 		Serializer(SerializerDependencies dependencies);
 

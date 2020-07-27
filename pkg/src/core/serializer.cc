@@ -1,34 +1,35 @@
+#include <cassert>
+#include <exception>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <cassert>
-#include <memory>
-#include <unordered_map>
-#include <exception>
 
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/core/serializer.h"
-#include "bib-parser/core/error.h"
 
+using std::logic_error;
 using std::out_of_range;
+using std::runtime_error;
+using std::shared_ptr;
+using std::string;
+using std::unordered_map;
+
 using TUCSE::Reference;
 using TUCSE::Serializer;
 using TUCSE::SerializerDependencies;
-using OutputType = TUCSE::OutputType;
-using std::shared_ptr;
-using std::unordered_map;
 using TUCSE::TranslationTable;
+using OutputType = TUCSE::OutputType;
 using FieldType = TUCSE::FieldType;
-using std::string;
 
 namespace
 {
 	char const *const HTMLBegin = "<!doctype html>\n<html lang=\"en\">\n\t<head>\n\t\t<meta charset=\"utf-8\" />\n\n\t\t<title>BIB Entries</title>\n\t\t<meta name=\"description\" content=\"Parsed with BIB Parser\" />\n\t\t<meta name=\"author\" content=\"Group 2\" />\n\t</head>\n\n\t<body>\n\t\t<ul class=\"references\">";
 	char const *const HTMLEnd = "\n\t\t</ul>\n\t</body>\n</html>";
 
-	char const *const XMLBegin = "XMLBEGIN";
-	char const *const XMLEnd = "XMLEND";
+	char const *const XMLBegin = "<?xml version=\"1.0\"?>\n<references>";
+	char const *const XMLEnd = "\n</references>";
 } // namespace
 
 Serializer::Serializer(SerializerDependencies dependencies)
@@ -53,8 +54,7 @@ void Serializer::beginDocument()
 		break;
 
 	default:
-		SerializerUnknownOutputType suot;
-		throw suot;
+		throw logic_error{"Unknown output type when creating output file"};
 	}
 }
 
@@ -77,8 +77,7 @@ void Serializer::writeReference(Reference const &reference)
 		break;
 
 	default:
-		SerializerUnknownOutputType suot;
-		throw suot;
+		throw logic_error{"Unknown output type when writing reference to output file"};
 	}
 }
 
@@ -99,8 +98,7 @@ void Serializer::endDocument()
 		break;
 
 	default:
-		SerializerEndDocument sed;
-		throw sed;
+		throw logic_error{"Unknown output type when finalizing output file"};
 	}
 }
 
@@ -154,7 +152,7 @@ void Serializer::writeHTMLReference(Reference const &reference)
 		}
 		catch (out_of_range const &exception)
 		{
-			throw std::runtime_error{"No translation rule found for field: " + fieldTypeString};
+			throw std::runtime_error{"No HTML translation rule found for field: " + fieldTypeString};
 		}
 	}
 	*(dependencies.outputFile.get()) << "\n\t\t\t</li>";
@@ -169,7 +167,7 @@ void Serializer::writeXMLReference(Reference const &reference)
 	// TODO: Wrap in try catch
 	// TODO: What to do when reference is opened, but rules are not found...?
 	// -> Buffer the file output, and write only if no exception is found...?
-	*(dependencies.outputFile.get()) << "\n\t\t\t<reference entry-type=\"reference " + stringsForEntryTypes.at(entryType) + " citation-key=\"" + reference.getCitationKey() + "\">";
+	*(dependencies.outputFile.get()) << "\n\t<reference citation-key=\"" + reference.getCitationKey() + "\">\n\t\t<entry-type>" + stringsForEntryTypes.at(entryType) + "</entry-type>";
 
 	unordered_map<FieldType, string> referenceFields = reference.getFields();
 	for (auto const &referenceField : referenceFields)
@@ -185,10 +183,10 @@ void Serializer::writeXMLReference(Reference const &reference)
 		}
 		catch (out_of_range const &exception)
 		{
-			throw std::runtime_error{"No translation rule found for field: " + fieldTypeString};
+			throw std::runtime_error{"No XML translation rule found for field: " + fieldTypeString};
 		}
 	}
-	*(dependencies.outputFile.get()) << "\n\t\t\t</reference>";
+	*(dependencies.outputFile.get()) << "\n\t</reference>";
 }
 
 void Serializer::writePDFReference(Reference const &reference)
@@ -212,8 +210,7 @@ void Serializer::writePDFReference(Reference const &reference)
 		}
 		catch (out_of_range const &exception)
 		{
-			std::cout << "Helle\n";
-			throw std::runtime_error{"No translation rule found for field: " + fieldTypeString};
+			throw std::runtime_error{"No PDF translation rule found for field: " + fieldTypeString};
 		}
 	}
 }
@@ -245,40 +242,4 @@ void Serializer::setOutputType(OutputType const outputType) noexcept
 void Serializer::setTranslationTable(std::shared_ptr<TranslationTable> translationTable) noexcept
 {
 	this->translationTable = translationTable;
-}
-
-bool Serializer::createHTML(std::vector<Reference> &references, std::string htmlName)
-{
-
-	for (auto const &reference : references)
-	{
-		if (!reference.isValid())
-		{
-			SerializerRefNotValid srn;
-			throw srn;
-		}
-	}
-
-	std::ofstream file;
-	file.open(htmlName + ".html", std::fstream::out);
-
-	for (std::vector<Reference>::size_type i = 0; i != references.size(); i++)
-	{
-		std::string citationKey;
-		citationKey = references[i].getCitationKey();
-		EntryType entryType;
-		entryType = references[i].getEntryType();
-		std::unordered_map fields = references[i].getFields();
-
-		file << "<h3>" + citationKey + "</h3><br>";
-		file << "<h4>" + entryTypeToString[entryType] + "</h4><br>";
-		for (const auto &[fieldType, value] : fields)
-		{
-			file << fieldTypeToString[fieldType] + ": " + value + "<br>";
-		}
-		file << "<hr><br>";
-	}
-
-	file.close();
-	return 0;
 }

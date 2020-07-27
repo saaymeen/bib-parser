@@ -7,6 +7,14 @@ void PDFRule::apply(SerializerDependencies &dependencies, std::string const &val
 {
 	assert(dependencies.pdfFile);
 
-	pdf_add_text(dependencies.pdfFile, NULL, value.c_str(), 12, 50, 20 + dependencies.offset, PDF_BLACK);
-	dependencies.offset += 20;
+	// 66 lines per page with 12pt line height = 792pt
+
+	pdf_add_text(dependencies.pdfFile, NULL, (value + "\n").c_str(), 12, 50, 20 + dependencies.pdfOffset, PDF_BLACK);
+	dependencies.pdfOffset -= 12;
+
+	if (dependencies.pdfOffset > 792) // Catch size_t overflow
+	{
+		dependencies.pdfOffset = 792;
+		pdf_append_page(dependencies.pdfFile);
+	}
 }

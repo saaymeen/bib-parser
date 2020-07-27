@@ -1,3 +1,5 @@
+
+
 #ifndef TUCSE_BIB_PARSER_SERIALIZER_DEPENDENCIES_H
 #define TUCSE_BIB_PARSER_SERIALIZER_DEPENDENCIES_H
 
@@ -25,6 +27,8 @@ namespace TUCSE
 		std::shared_ptr<std::ofstream> outputFile;
 		// outputFilePath is the path associated with the outputFile.
 		std::string const outputFilePath{};
+
+		size_t pdfOffset{792};
 	};
 } // namespace TUCSE
 

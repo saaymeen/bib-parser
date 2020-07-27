@@ -6,7 +6,6 @@ add_library(bib-parser-package STATIC
 	${CMAKE_CURRENT_LIST_DIR}/src/core/parser.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/core/sorter.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/core/util.cc
-	${CMAKE_CURRENT_LIST_DIR}/src/core/types.cc
 	${CMAKE_CURRENT_LIST_DIR}/src/core/serializer.cc
 	
 	${CMAKE_CURRENT_LIST_DIR}/src/translation/html-rule.cc
