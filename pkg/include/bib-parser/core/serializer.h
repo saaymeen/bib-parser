@@ -20,7 +20,7 @@ namespace TUCSE
 	public:
 		bool createHTML(std::vector<Reference> &references, std::string htmlName);
 
-		Serializer(SerializerDependencies const dependencies);
+		Serializer(SerializerDependencies dependencies);
 
 		void beginDocument();
 		void writeReference(Reference const &reference);
@@ -46,7 +46,7 @@ namespace TUCSE
 		std::shared_ptr<TranslationTable> translationTable{nullptr};
 
 		OutputType outputType{OutputType::HTML};
-		SerializerDependencies const dependencies;
+		SerializerDependencies dependencies;
 
 		std::unordered_map<TUCSE::EntryType, std::string> entryTypeToString = {
 			{TUCSE::EntryType::Article, "Article"},

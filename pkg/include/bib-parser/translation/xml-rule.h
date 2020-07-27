@@ -18,7 +18,7 @@ namespace TUCSE
 		{
 		}
 
-		void apply(SerializerDependencies const &dependencies, std::string const &value) const noexcept;
+		void apply(SerializerDependencies &dependencies, std::string const &value) const noexcept;
 
 	private:
 		std::string const tag;

@@ -8,6 +8,7 @@ enable_testing()
 
 add_subdirectory(lib/catch2)
 add_subdirectory(lib/cli11)
+add_subdirectory(lib/pdfgen)
 
 add_subdirectory(pkg)
 add_subdirectory(cmd)

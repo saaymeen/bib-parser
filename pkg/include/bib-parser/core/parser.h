@@ -52,7 +52,7 @@ namespace TUCSE
 		std::string value();
 		std::string singleValue();
 		std::string directive();
-		std::string parseFieldValue(std::string); 
+		std::string parseFieldValue(std::string);
 		std::pair<std::string, std::string> keyEqualsValue();
 		void keyValueList(std::string, EntryType);
 
@@ -68,6 +68,8 @@ namespace TUCSE
 		std::ifstream inputFile{};
 		std::ifstream configFile{};
 		std::shared_ptr<std::ofstream> outputFile{};
+
+		std::string const outputFilePath{};
 
 		bool verbose{false};
 

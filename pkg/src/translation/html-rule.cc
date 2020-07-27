@@ -9,7 +9,7 @@ using std::string;
 using TUCSE::HTMLRule;
 using TUCSE::SerializerDependencies;
 
-void HTMLRule::apply(SerializerDependencies const &dependencies, std::string const &value) const noexcept
+void HTMLRule::apply(SerializerDependencies &dependencies, std::string const &value) const noexcept
 {
 	string htmlTag{};
 

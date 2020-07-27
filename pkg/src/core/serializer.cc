@@ -31,7 +31,7 @@ namespace
 	char const *const XMLEnd = "XMLEND";
 } // namespace
 
-Serializer::Serializer(SerializerDependencies const dependencies)
+Serializer::Serializer(SerializerDependencies dependencies)
 	: dependencies{dependencies}
 {
 }
@@ -116,6 +116,17 @@ void Serializer::beginXMLDocument()
 
 void Serializer::beginPDFDocument()
 {
+	pdf_info pdfInfo = {
+		.creator = "TU Chemnitz",
+		.producer = "BIB-Parser",
+		.title = "Reference List",
+		.author = "TU Chemnitz",
+		.subject = "References",
+		.date = "Today",
+	};
+	dependencies.pdfFile = pdf_create(PDF_A4_WIDTH, PDF_A4_HEIGHT, &pdfInfo);
+	pdf_set_font(dependencies.pdfFile, "Times-Roman");
+	pdf_append_page(dependencies.pdfFile);
 }
 
 void Serializer::writeHTMLReference(Reference const &reference)
@@ -182,6 +193,29 @@ void Serializer::writeXMLReference(Reference const &reference)
 
 void Serializer::writePDFReference(Reference const &reference)
 {
+	assert(dependencies.pdfFile);
+
+	assert(translationTable);
+
+	EntryType entryType = reference.getEntryType();
+	unordered_map<FieldType, string> referenceFields = reference.getFields();
+	for (auto const &referenceField : referenceFields)
+	{
+		std::string fieldTypeString{"unknown"};
+		try
+		{
+			fieldTypeString = stringsForFieldTypes.at(referenceField.first);
+			auto rule = translationTable->getRule(OutputType::PDF, referenceField.first);
+
+			// Rule found
+			rule->apply(dependencies, referenceField.second);
+		}
+		catch (out_of_range const &exception)
+		{
+			std::cout << "Helle\n";
+			throw std::runtime_error{"No translation rule found for field: " + fieldTypeString};
+		}
+	}
 }
 
 void Serializer::endHTMLDocument()
@@ -196,6 +230,11 @@ void Serializer::endXMLDocument()
 
 void Serializer::endPDFDocument()
 {
+	assert(dependencies.pdfFile);
+
+	pdf_save(dependencies.pdfFile, dependencies.outputFilePath.c_str());
+	pdf_destroy(dependencies.pdfFile);
+	dependencies.pdfFile = nullptr;
 }
 
 void Serializer::setOutputType(OutputType const outputType) noexcept

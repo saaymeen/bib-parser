@@ -48,7 +48,7 @@ map<string, OutputType> const Parser::outputTypeMap{
 	{"html", OutputType::HTML}};
 
 Parser::Parser(string const &inputFilePath, string const configFilePath, string const outputFilePath)
-	: inputFile{inputFilePath}, configFile{configFilePath}, outputFile{make_shared<ofstream>(outputFilePath)}, translationTable{make_shared<TranslationTable>()}
+	: inputFile{inputFilePath}, configFile{configFilePath}, outputFile{make_shared<ofstream>(outputFilePath)}, translationTable{make_shared<TranslationTable>()}, outputFilePath{outputFilePath}
 {
 }
 
@@ -69,7 +69,7 @@ void Parser::generateOutput(OutputType const outputType)
 	validateReferences();
 
 	// Initialize the serializer and pass the required dependencies for generating the output files
-	SerializerDependencies serializerDependencies{outputFile};
+	SerializerDependencies serializerDependencies{outputFile, outputFilePath};
 	Serializer serializer{serializerDependencies};
 	serializer.setOutputType(outputType);
 	serializer.setTranslationTable(translationTable);
@@ -264,6 +264,7 @@ void Parser::processConfigLine(string const &key, string const &value, ConfigSec
 			ScalarType scalarType = translationTable->getScalarType(fieldType);
 			PDFType pdfType = TranslationTable::pdfTypeStrings.at(value);
 			unique_ptr<PDFRule> pdfRule = make_unique<PDFRule>(fieldType, scalarType, pdfType);
+			std::cout << "PDF Rule found\n";
 			translationTable->addRule(OutputType::PDF, fieldType, move(pdfRule));
 		}
 		catch (out_of_range const &exception)
@@ -650,8 +651,9 @@ std::string Parser::trim(std::string input)
 	return start == end ? std::string() : input.substr(start, end - start + 1);
 }
 
-std::string Parser::parseFieldValue(std::string value) {
-	//TODO implement 
+std::string Parser::parseFieldValue(std::string value)
+{
+	//TODO implement
 
-	return value.at(0) == '{' && value.at(value.length()-1) == '}' ? value.substr(1, value.length() - 2) : value; 
+	return value.at(0) == '{' && value.at(value.length() - 1) == '}' ? value.substr(1, value.length() - 2) : value;
 }

@@ -29,3 +29,5 @@ target_include_directories(bib-parser-package
 	PRIVATE
 		${CMAKE_CURRENT_LIST_DIR}/src
 )
+
+target_link_libraries(bib-parser-package PUBLIC pdfgen)
