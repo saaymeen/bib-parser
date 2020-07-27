@@ -5,24 +5,28 @@
 #include <memory>
 #include <unordered_map>
 
-#include "bib-parser/bibliography/reference.h"
 #include "bib-parser/bibliography/entry-type.h"
 #include "bib-parser/bibliography/field-type.h"
-#include "bib-parser/core/types.h"
-#include "bib-parser/translation/translation-table.h"
 #include "bib-parser/bibliography/reference.h"
 #include "bib-parser/core/serializer-dependencies.h"
+#include "bib-parser/core/types.h"
+#include "bib-parser/translation/translation-table.h"
 
 namespace TUCSE
 {
+	// Serializer provides functionality for writing out a list of references into a file, respecting a specific file format.
 	class Serializer
 	{
 	public:
+		// TODO: Remove, obsolete
 		bool createHTML(std::vector<Reference> &references, std::string htmlName);
 
+		// Serializer constructs a TUCSE::Serializer object with the given TUCSE::SerializerDependencies given in dependencies.
 		Serializer(SerializerDependencies dependencies);
 
+		// beginDocument should be called before the TUCSE::Reference objects will be written. It forwards the call to the file tpye specific beginDocument method initializing the output file.
 		void beginDocument();
+		// writeReference takes a TUCSE::Reference and forwards it to the file type specific writeReference method.
 		void writeReference(Reference const &reference);
 		void endDocument();
 
