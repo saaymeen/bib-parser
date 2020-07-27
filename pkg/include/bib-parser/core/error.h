@@ -1,3 +1,4 @@
+/* OBSOLETE
 #ifndef TUCSE_BIB_PARSER_ERROR_H
 #define TUCSE_BIB_PARSER_ERROR_H
 
@@ -60,3 +61,4 @@ namespace TUCSE
 } // namespace TUCSE
 
 #endif // TUCSE_BIB_PARSER_ERROR_H
+*/
