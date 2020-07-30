@@ -25,9 +25,12 @@ namespace TUCSE
 		void beginDocument();
 		// writeReference takes a TUCSE::Reference and forwards it to the file type specific writeReference method.
 		void writeReference(Reference const &reference);
+		// endDocument forwards the call to file type specific endDocument method where the output file will be finalized
 		void endDocument();
 
+		// setOutputType sets the output type for the TUCSE::Serializer object to outputType
 		void setOutputType(OutputType const outputType) noexcept;
+		// setTranslationTable links a translationTable to the current TUCSE::Serializer object, which will be used to fetch rules
 		void setTranslationTable(std::shared_ptr<TranslationTable> translationTable) noexcept;
 
 	private:

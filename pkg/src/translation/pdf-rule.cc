@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "bib-parser/translation/pdf-rule.h"
 
 using TUCSE::PDFRule;

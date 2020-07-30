@@ -115,12 +115,12 @@ void Serializer::beginXMLDocument()
 void Serializer::beginPDFDocument()
 {
 	pdf_info pdfInfo = {
-		.creator = "TU Chemnitz",
-		.producer = "BIB-Parser",
-		.title = "Reference List",
-		.author = "TU Chemnitz",
-		.subject = "References",
-		.date = "Today",
+		"TU Chemnitz",
+		"BIB-Parser",
+		"Reference List",
+		"TU Chemnitz",
+		"References",
+		"Today",
 	};
 	dependencies.pdfFile = pdf_create(PDF_A4_WIDTH, PDF_A4_HEIGHT, &pdfInfo);
 	pdf_set_font(dependencies.pdfFile, "Times-Roman");
