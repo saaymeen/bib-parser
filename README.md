@@ -24,7 +24,7 @@ author=author # Author will be placed into <author>string</author>
 pages=pages # Pages will be placed into <pages>range</pages>
 
 [xml]
-author=text # Author will be put into the document as test # The only type supported for PDF currently
+author=text # Author will be put into the document as text # The only type supported for PDF currently
 ```
 
 For further configuration options, please see the [example .ini file](./test/data/style.ini).
