@@ -74,5 +74,5 @@ void HTMLRule::apply(SerializerDependencies &dependencies, std::string const &va
 		break;
 	}
 
-	*(dependencies.outputFile.get()) << "\n\t\t\t\t<" + htmlTag + ">" + formattedValue + "</" + htmlTag + ">";
+	*(dependencies.outputFile.get()) << "\n\t\t\t\t<" + htmlTag + " class=\"" + stringsForFieldTypes.at(fieldType) + "\">" + formattedValue + "</" + htmlTag + ">";
 }

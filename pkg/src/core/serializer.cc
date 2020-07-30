@@ -136,7 +136,7 @@ void Serializer::writeHTMLReference(Reference const &reference)
 	// TODO: Wrap in try catch
 	// TODO: What to do when reference is opened, but rules are not found...?
 	// -> Buffer the file output, and write only if no exception is found...?
-	*(dependencies.outputFile.get()) << "\n\t\t\t<li class=\"reference " + stringsForEntryTypes.at(entryType) + " id=\"" + reference.getCitationKey() + "\">";
+	*(dependencies.outputFile.get()) << "\n\t\t\t<li class=\"reference " + stringsForEntryTypes.at(entryType) + "\" id=\"" + reference.getCitationKey() + "\">";
 
 	unordered_map<FieldType, string> referenceFields = reference.getFields();
 	for (auto const &referenceField : referenceFields)
@@ -212,6 +212,12 @@ void Serializer::writePDFReference(Reference const &reference)
 		{
 			throw std::runtime_error{"No PDF translation rule found for field: " + fieldTypeString};
 		}
+	}
+	dependencies.pdfOffset -= 12;
+	if (dependencies.pdfOffset > 792) // Catch size_t overflow
+	{
+		dependencies.pdfOffset = 792;
+		pdf_append_page(dependencies.pdfFile);
 	}
 }
 
