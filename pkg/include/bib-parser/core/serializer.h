@@ -46,6 +46,8 @@ namespace TUCSE
 		void endXMLDocument();
 		void endPDFDocument();
 
+		std::string replaceSpecialSymbols(std::string str);
+
 	private:
 		std::shared_ptr<TranslationTable> translationTable{nullptr};
 
@@ -94,7 +96,24 @@ namespace TUCSE
 			{TUCSE::FieldType::Year, "Year"},
 			{TUCSE::FieldType::NumberOf, "NumberOf"},
 		};
+		std::unordered_map<std::string, std::string> specialSymbolsMap = {
+			{"{\\\"o}","&ouml"},
+			{"{\\\"a}","&auml"},
+			{"{\\\"u}","&uuml"},
+			{"{\\\"O}","&Ouml"},
+			{"{\\\"A}","&Auml"},
+			{"{\\\"U}","&Uuml"},
+			{"{\\\'o}","&oacute"},
+			{"{\\\'a}","&aacute"},
+			{"{\\\'u}","&uacute"},
+			{"{\\\'e}","&eacute"},
+			{"{\\\ss}","&szlig"},
+			{"{\\\%}","%"},
+			{"{\\\&}","&"}
+		};
 	};
+
+	
 
 } // namespace TUCSE
 

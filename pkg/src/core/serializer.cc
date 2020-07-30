@@ -148,7 +148,7 @@ void Serializer::writeHTMLReference(Reference const &reference)
 			auto rule = translationTable->getRule(OutputType::HTML, referenceField.first);
 
 			// Rule found
-			rule->apply(dependencies, referenceField.second);
+			rule->apply(dependencies, replaceSpecialSymbols(referenceField.second));
 		}
 		catch (out_of_range const &exception)
 		{
@@ -248,4 +248,25 @@ void Serializer::setOutputType(OutputType const outputType) noexcept
 void Serializer::setTranslationTable(std::shared_ptr<TranslationTable> translationTable) noexcept
 {
 	this->translationTable = translationTable;
+}
+
+std::string Serializer::replaceSpecialSymbols(std::string str) {
+
+	for (auto const &specialSymbol : specialSymbolsMap) {
+
+		std::string searchFor = specialSymbol.first;
+		std::string replaceWith = specialSymbol.second;
+		// Get the first occurrence
+		size_t pos = str.find(searchFor);
+		// Repeat till end is reached
+		while (pos != std::string::npos)
+		{
+			// Replace this occurrence of Sub String
+			str.replace(pos, searchFor.size(), replaceWith);
+			// Get the next occurrence from the current position
+			pos = str.find(searchFor, pos + replaceWith.size());
+		}
+	}
+
+	return str;
 }
